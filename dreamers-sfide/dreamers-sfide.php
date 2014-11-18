@@ -9,7 +9,34 @@
  * License: GPLv3
  */
 
-require_once('regioni_e_zone.php');
+
+function alert_regional_data_missing(){
+    $screen = get_current_screen();
+    global $regioni;
+    global $zone;
+
+    //if($screen->base != 'post-new.php' /*|| $screen->post_type != 'sfida_event' */ ){
+    //    return;
+    // }
+
+    $msg = "";
+    if(! file_exists(plugin_dir_path(__FILE__) . 'regioni_e_zone.php') ){
+        $msg = "Il file <i>regioni_e_zone.php</i> è mancante. ";
+	    $msg = $msg . "Puoi crearlo copiando il file <i>regioni_e_zone_sample.php</i>.";
+    } else {
+	   require_once('regioni_e_zone.php');
+	   if(!isset($regioni) || !isset($zone)){
+	       $msg = "Il file <i>regioni_e_zone.php</i> contiente informazioni errate.";
+	   }
+    }
+    if($msg != "" && $screen->post_type == "sfida_event"){
+	echo '<div class="error">';
+	echo $msg;
+	echo '</div>';
+    }
+}
+
+add_action( 'admin_notices', 'alert_regional_data_missing' );
 
 //SETUP
 function rtd_sfide_install(){
