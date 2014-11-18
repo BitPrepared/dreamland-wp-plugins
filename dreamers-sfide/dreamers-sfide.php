@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Sfide Return to Dreamland
- * Plugin URI: http://.... github
+ * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin per la gestione dei "Racconti Sfida"
- * Version: The Plugin's Version Number, e.g.: 1.0
- * Author: Name Of The Plugin Author
- * Author URI: http://.... 
+ * Version: 0.1
+ * Author: Bit Prepared
+ * Author URI: http://github.com/BitPrepared 
  * License: GPLv3
  */
 
