@@ -1,0 +1,11 @@
+# Blacklist everything
+*
+
+# Explicitly track the dreamers-* plugins
+!dreamers-*/*
+
+# Track this file
+!.gitignore
+
+# Blacklist data files
+regioni_e_zone.php
