@@ -407,8 +407,7 @@ function sfide_custom_meta() {
         // context -> (string) (optional) The part of the page where the edit screen section should be shown ('normal', 'advanced', or 'side'). (Note that 'side' doesn't exist before 2.7)
         add_meta_box( 'sfide_event_start_meta', 'Inizio Evento', 'sfide_event_date', 'sfida_event', 'normal', 'default', array( 'id' => '_start') );
         add_meta_box( 'sfide_event_end_meta', 'Fine Evento', 'sfide_event_date', 'sfida_event', 'normal', 'default', array('id'=>'_end') );
-	add_meta_box( 'sfide_event_regione_meta', 'Regione', 'sfide_event_region', 'sfida_event', 'normal', 'default', array());
-	add_meta_box( 'sfide_event_provincia_meta', 'Provincia', 'sfide_event_provincia', 'sfida_event', 'normal', 'default', array());
+	    add_meta_box( 'sfide_event_limit_meta', 'Limita a', 'sfide_event_limit', 'sfida_event', 'normal', 'default', array());
     }
     if ( current_user_can('promuovi_sfide_review') )
     {
@@ -472,31 +471,37 @@ function sfide_event_date($post, $args) {
  
 }
 
-function sfide_event_region($post, $args) { 
+function sfide_event_limit($post, $args) { 
     global $regioni;
-    // get current value or default
-    // default: sfida nazionale
+    global $zone;
 
-    // Read list of regions
+    $curr_reg = get_post_meta($post->ID, '_regione', 1);
+    $curr_zon = get_post_meta($post->ID, '_zona', 1);
 
-    // create menu input 
-    echo '<select>';
+    // Use nonce for verification
+    wp_nonce_field( plugin_basename( __FILE__ ), 'ep_eventposts_nonce' );
+
+    // create menu input per regione 
+    echo '<select name="_regione">'."\n";
     foreach($regioni as $r){
-        echo '<option value="'.$r[2].'">'.$r[1].'</option>';
+        echo '<option value="'.$r[2];
+        if($curr_reg == $r[2]){
+            echo '" selected="selected';
+        }
+        echo '">'.$r[1]."</option>\n";
     }
-    echo '</select>';
+    echo "</select>\n";
 
-}
-
-function sfide_event_provincia($post, $args){
-   global $zone;
-   
-   echo '<select>';
+    echo '<select name="_zona">';
     foreach($zone as $z){
-	// todo: filtrare solo zone nella regione selezionata
-        echo '<option value="'.$z[1].'">'.$z[2].'</option>';
+        echo '<option value="'.$z[0].$z[1];
+        if ($curr_zon == $z[1]){
+            echo '" selected="selected';
+        }
+        echo '">' . $z[2].'</option>' . "\n";
     }
     echo '</select>';
+
 }
 
 /**
@@ -611,6 +616,9 @@ function ep_eventposts_save_meta( $post_id, $post ) {
         
     }
     
+    $events_meta['_regione'] = $_POST['_regione'];
+    $events_meta['_zona'] = $_POST['_zona'];
+
     // Save Locations Meta
     // $events_meta['_event_location'] = $_POST['_event_location'];   
  
@@ -717,6 +725,41 @@ function manage_gallery_columns($column_name, $id) {
 
 // Add to admin_init function manage_{custom_type}_posts_custom_column
 add_action('manage_sfida_event_posts_custom_column', 'manage_gallery_columns', 10, 2);
+
+function sfide_disponibili_dashboard_widget(){
+
+    $args = array(
+        'posts_per_page'   => 10,
+        'offset'           => 0,
+        'orderby'          => 'post_date',
+        'order'            => 'DESC',
+        'include'          => '',
+        'exclude'          => '',
+        'meta_key'         => '',
+        'meta_value'       => '',
+        'post_type'        => 'sfida_event',
+        'post_mime_type'   => '',
+        'post_parent'      => '',
+        'post_status'      => 'publish',
+        'suppress_filters' => true
+    );
+
+    $posts_array = get_posts($args);
+    echo "<span style=\"text-align:right;\">Hai ". count($posts_array) ." sfide disponibili</span><br>";
+    echo "<ul>";
+    foreach ($posts_array as $k => $p) {
+        echo '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></li>";
+    }
+    echo "</ul>";
+
+}
+
+function create_sfide_disponibili_widget(){
+    wp_add_dashboard_widget( 'sfide_disponibili', 'Sfide disponibili', 'sfide_disponibili_dashboard_widget', 'sfide_diponibili_filter' );
+}
+
+add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
+
 
 // /**
 //  * Customize Event Query using Post Meta
