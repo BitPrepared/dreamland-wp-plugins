@@ -25,6 +25,7 @@ function alert_regional_data_missing(){
 	    $msg = $msg . "Puoi crearlo copiando il file <i>regioni_e_zone_sample.php</i>.";
     } else {
 	   require_once('regioni_e_zone.php');
+       require_once('regioni_zone_utils.php');
 	   if(!isset($regioni) || !isset($zone)){
 	       $msg = "Il file <i>regioni_e_zone.php</i> contiente informazioni errate.";
 	   }
@@ -482,25 +483,52 @@ function sfide_event_limit($post, $args) {
     wp_nonce_field( plugin_basename( __FILE__ ), 'ep_eventposts_nonce' );
 
     // create menu input per regione 
-    echo '<select name="_regione">'."\n";
+    echo '<select id="select_regione" name="_regione" onchange="update_zone(event)">'."\n";
+
+    usort($regioni, "ordina_regioni_per_nome");
     foreach($regioni as $r){
         echo '<option value="'.$r[2];
         if($curr_reg == $r[2]){
             echo '" selected="selected';
         }
-        echo '">'.$r[1]."</option>\n";
+        echo '" id="'. get_codice_regione($r) .'">'.$r[1]."</option>\n";
     }
     echo "</select>\n";
 
-    echo '<select name="_zona">';
+    echo '<select id="select_zona" name="_zona"  onchange="update_regione(event)">';
+    usort($zone, "ordina_zone_per_nome");
     foreach($zone as $z){
-        echo '<option value="'.$z[0].$z[1];
-        if ($curr_zon == $z[1]){
+        echo '<option value="'.get_nome_zona($z);
+        if ($curr_zon == get_nome_zona($z)){
             echo '" selected="selected';
         }
-        echo '">' . $z[2].'</option>' . "\n";
+        echo '" class="'. get_codice_regione_zona($z) .'">' . get_nome_zona($z) .'</option>' . "\n";
     }
     echo '</select>';
+    ?>
+    <script language="javascript">
+    function update_regione(e){
+        sel = e.target;
+        selected = sel.options[sel.selectedIndex];
+        document
+            .querySelector("#select_regione > option#" + selected.className)
+            .setAttribute("selected", "selected");
+    }
+
+    function update_zone(e){
+        sel = e.target;
+        selected = sel.options[sel.selectedIndex];
+        all = document.querySelectorAll("#select_zona > option");
+        for(i = 0; i < all.length; i++){   
+            if(all[i].className !== selected.id && all[i].className != 'A' && selected.id != 'A'){
+                all[i].setAttribute('hidden', true);
+            } else {
+                all[i].removeAttribute('hidden');
+            }
+        }
+    }
+    </script>
+    <?php
 
 }
 
