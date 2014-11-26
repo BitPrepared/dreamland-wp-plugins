@@ -43,9 +43,6 @@ register_deactivation_hook(__FILE__,'rtd_uninstall');
 
 function json_pre_insert_user_dreamers($user , $data) {
     // $user->meta = $data['meta']; return $user;
-    $random_password = wp_generate_password( 12, false );
-    $user->user_pass = $random_password;
-    _log('generato '.$random_password);
     return $user;
 }
 add_filter('json_pre_insert_user','json_pre_insert_user_dreamers', 10 , 2);
@@ -77,8 +74,11 @@ function inserted_user_dreamers($user , $data, $update) {
                     _log('impossibile inserire  '.$key.' con value '.$value.' per user '.$user_id);
                 }
             }
-            user_notification_password($user_id);
         }
+        $random_password = wp_generate_password( 12, false );
+        wp_set_password( $random_password, $user_id );
+        user_notification_password($user_id);
+        _log('generato '.$random_password);
     }
 }
 // add_action( $tag, $function_to_add, $priority, $accepted_args );
