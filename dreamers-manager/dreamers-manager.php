@@ -43,25 +43,42 @@ register_deactivation_hook(__FILE__,'rtd_uninstall');
 
 function json_pre_insert_user_dreamers($user , $data) {
     // $user->meta = $data['meta']; return $user;
+    return $user;
 }
 add_filter('json_pre_insert_user','json_pre_insert_user_dreamers', 10 , 2);
 
+function user_notification_password($user_id) {
+    $user = get_userdata( $user_id );
+
+    $plaintext_pass = $user->user_pass;
+
+    $message  = "Benvenuti in Dreamland \r\n\r\n";
+    $message .= "Utilizza queste credenziali per accedere al pannello di dreamland. \n\n";
+    $message .= sprintf(__('Username: %s'), $user->user_login) . "\r\n";
+    $message .= sprintf(__('Password: %s'), $plaintext_pass) . "\r\n";
+    $message .= 'Pannello : '.wp_login_url() . "\r\n";
+
+    wp_mail(get_option('admin_email'), 'New User Registration', $message);
+    wp_mail($user->user_email, 'Benvenuti in Dreamland', $message);
+}
+
 function inserted_user_dreamers($user , $data, $update) {
-    // $user->meta = $data['meta']; return $user;
     if ( !$update ) {
+        $user_id = $user->ID;
+        _log('inserted_user_dreamers '.$user_id);
         if ( isset($data['meta'] )) {
             foreach ($data['meta'] as $key => $value) {
                 //add_user_meta( $user_id, $meta_key, $meta_value, $unique );
                 //http://codex.wordpress.org/Function_Reference/add_user_meta
-                add_user_meta( $user_id, $key, $value, true);
-            }
-            //  wp_mail( $to, $subject, $message, $headers, $attachments )
-            if ( wp_mail( $to, $subject, $message, $headers, $attachments ) ) {
-
-            } else {
-                // cosa faccio???
+                if ( add_user_meta( $user_id, $key, $value, true) === false ){
+                    _log('impossibile inserire  '.$key.' con value '.$value.' per user '.$user_id);
+                }
             }
         }
+        $random_password = wp_generate_password( 12, false );
+        wp_set_password( $random_password, $user_id );
+        user_notification_password($user_id);
+        _log('generato '.$random_password);
     }
 }
 // add_action( $tag, $function_to_add, $priority, $accepted_args );
