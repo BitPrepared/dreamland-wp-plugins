@@ -12,6 +12,7 @@ Plugin a supporto di : http://ReturnToDreamland.agesci.org
 
 ### Plugin utili 
  * [View own posts media only](https://wordpress.org/plugins/view-own-posts-media-only/)
+ * [WP Mail SMTP](https://wordpress.org/plugins/wp-mail-smtp/) per usare un smtp esterno rispetto al server su cui gira wordpress (riconfigura wp_mail) 
 
 ### Installazione tramite git
 
