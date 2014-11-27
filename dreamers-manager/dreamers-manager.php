@@ -22,24 +22,37 @@ function rtd_manager_install(){
 
     //add_role( $role_name, $display_name, $capabilities );
     // add_role( 'capo_reparto', 'Capo Reparto', array( 'manage_eg' ) );
-    $role = get_role('author');
-    if ( null != $role ){
-    	$role->add_cap('manage_eg');
+    $role = get_role('editor');
+    $role->add_cap('manage_eg');
+
+    $role = get_role('administrator');
+    $role->add_cap('manage_eg');
+
+    $role = get_role('capo_reparto');
+    if ( $role != null ){
+        $role->add_cap('abilita_eg');
     }
 }
 
-register_activation_hook(__FILE__,'rtd_install');
+register_activation_hook(__FILE__,'rtd_manager_install');
 
 function rtd_manager_uninstall(){
     // When a role is removed, the users who have this role lose all rights on the site.
     // remove_role('capo_reparto');
-	$role = get_role('author');
-    if ( null != $role ){
-    	$role->remove_cap('manage_eg');
+    
+    $role = get_role('editor');
+    $role->remove_cap('manage_eg');
+
+    $role = get_role('administrator');
+    $role->remove_cap('manage_eg');
+
+    $role = get_role('capo_reparto');
+    if ( $role != null ){
+        $role->remove_cap('abilita_eg');
     }
 }
 
-register_deactivation_hook(__FILE__,'rtd_uninstall');
+register_deactivation_hook(__FILE__,'rtd_manager_uninstall');
 
 function json_pre_insert_user_dreamers($user , $data) {
     // $user->meta = $data['meta']; return $user;
@@ -58,8 +71,10 @@ function user_notification_password($user_id) {
     $message .= sprintf(__('Password: %s'), $plaintext_pass) . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
 
-    wp_mail(get_option('admin_email'), 'New User Registration', $message);
-    wp_mail($user->user_email, 'Benvenuti in Dreamland', $message);
+    if ( defined('RTD_DEVELOP') && !RTD_DEVELOP ) {
+        wp_mail(get_option('admin_email'), 'New User Registration', $message);
+        wp_mail($user->user_email, 'Benvenuti in Dreamland', $message);
+    }
 }
 
 function inserted_user_dreamers($user , $data, $update) {
@@ -73,6 +88,11 @@ function inserted_user_dreamers($user , $data, $update) {
                 if ( add_user_meta( $user_id, $key, $value, true) === false ){
                     _log('impossibile inserire  '.$key.' con value '.$value.' per user '.$user_id);
                 }
+            }
+
+            if ( strcmp($data['meta']['ruolocensimento'], 'capo_reparto') == 0 ) {
+                $u = new WP_User( $user_id );
+                $u->add_role( 'capo_reparto' );
             }
         }
         $random_password = wp_generate_password( 12, false );
@@ -105,29 +125,210 @@ function gestione_ruoli_menu_page(){
 //     'who'          => ''
 //  );
 
-    echo "Ragazzi da Autorizzare";
+    ?>
+
+    <h1>Dreamers Join Request</h1>
+    <table class="widefat fixed" cellspacing="0">
+        <thead>
+        <tr>
+            <th id="columnname" class="manage-column column-columnname" scope="col">R</th> 
+            <th id="columnname" class="manage-column column-columnname" scope="col">Gruppo</th> 
+            <th id="columnname" class="manage-column column-columnname" scope="col">Squadriglia</th>
+            <th id="columnname" class="manage-column column-columnname num" scope="col">Censimento</th>
+            <th id="columnname" class="manage-column column-columnname" scope="col">Ruolo</th>
+            <th id="columnname" class="manage-column column-columnname" scope="col">Azioni</th> 
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname num" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+        </tr>
+        </tfoot>
+        <tbody>
+    <?php
+
+    //@see http://wordpress.stackexchange.com/questions/66486/return-all-users-with-a-specific-meta-key
     $args = array(
         'role' => 'subscriber',
-        'meta_key'     => '',
-        'meta_value'   => '',
+        'meta_key'     => 'codicecensimento',
+        // 'meta_value'   => '*',
         'orderby'      => 'lastname',
         'order'        => 'ASC'
     );
-    get_users( $args );
 
-    echo "Ragazzi autorizzati";
+    $res = get_users( $args ); //WP_User array
+    foreach ($res as $rownumber => $user) {
+        
+        if ( $rownumber % 2 == 0 ) {
+            echo '<tr class="alternate">';
+        } else {
+            echo '<tr>';
+        }
+
+        $skip = false;
+
+        $id = $user->ID;
+        $all_meta_for_user = get_user_meta( $id );
+        $user_info = get_userdata( $id );
+
+        $gruppo = $all_meta_for_user['groupDisplay'][0];
+        if ( !current_user_can('manage_eg') ) {
+            
+            $myUserId = get_current_user_id();
+            $all_meta_mime = get_user_meta( $myUserId );
+
+            if (  strcasecmp($all_meta_mime['group'], $all_meta_for_user['group']) != 0 ) {
+                $skip = true;
+            }
+
+        }
+
+        if ( !$skip ) {
+        
+            $ruolocensimento = $all_meta_for_user['ruolocensimento'];
+
+            echo '<td class="column-columnname">'.$ruolocensimento.'</td>';
+            echo '<td class="column-columnname">'.$gruppo.'</td>';
+            echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
+            echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
+            echo '<td class="column-columnname">'.implode(', ', $user_info->roles).'</td>';
+
+            echo '<td class="column-columnname">';
+
+            if ( current_user_can('abilita_eg') || current_user_can('manage_eg') )
+            {
+                echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
+                echo '<input type="hidden" name="action" value="rtdautorizzaeg" />';
+                echo '<input type="hidden" name="selecteduser" value="'.$id.'" />';
+                echo '<input type="submit" value="Autorizza E/G" />';
+                echo '</form>';
+            }
+            echo '</td>';
+
+        }
+
+    }
+    ?>
+
+        </tbody>
+    </table>
+
+    <h1>Dreamers</h1>
+    <table class="widefat fixed" cellspacing="0">
+        <thead>
+        <tr>
+            <th id="columnname" class="manage-column column-columnname" scope="col">R</th> 
+            <th id="columnname" class="manage-column column-columnname" scope="col">Gruppo</th> 
+            <th id="columnname" class="manage-column column-columnname" scope="col">Squadriglia</th>
+            <th id="columnname" class="manage-column column-columnname num" scope="col">Censimento</th>
+            <th id="columnname" class="manage-column column-columnname" scope="col">Ruolo</th>
+            <th id="columnname" class="manage-column column-columnname" scope="col">Azioni</th> 
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname num" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
+        </tr>
+        </tfoot>
+        <tbody>
+    <?php
+
     $args = array(
         'role' => 'utente_eg',
+        // 'meta_key'     => 'codicecensimento',
+        // 'meta_value'   => '*',
         'orderby'      => 'lastname',
         'order'        => 'ASC'
     );
-    get_users( $args );
+
+    $res = get_users( $args ); //WP_User array
+    foreach ($res as $rownumber => $user) {
+        
+        if ( $rownumber % 2 == 0 ) {
+            echo '<tr class="alternate">';
+        } else {
+            echo '<tr>';
+        }
+
+        $id = $user->ID;
+        $all_meta_for_user = get_user_meta( $id );
+        $user_info = get_userdata( $id );
+
+        $ruolocensimento = $all_meta_for_user['ruolocensimento'];
+
+        echo '<td class="column-columnname">'.$ruolocensimento.'</td>';
+        echo '<td class="column-columnname">'.$all_meta_for_user['groupDisplay'][0].'</td>';
+        echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
+        echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
+        echo '<td class="column-columnname">'.implode(', ', $user_info->roles).'</td>';
+
+        echo '<td class="column-columnname">';
+
+        if ( current_user_can('abilita_eg') || current_user_can('manage_eg') )
+        {
+            echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
+            echo '</form>';
+        }
+        echo '</td>';
+
+    }
+    ?>
+
+        </tbody>
+    </table>
+
+    <?php
+
+}
+
+add_action( 'admin_action_rtdautorizzaeg', 'rtdautorizzaeg_admin_action' );
+
+function rtdautorizzaeg_admin_action()
+{
+
+    $can = current_user_can('abilita_eg') || current_user_can('manage_eg');
+
+    if ( isset($_POST['selecteduser']) && $can ) {
+
+        // Do your stuff here
+        $user_id = $_POST['selecteduser'];
+        
+        $u = new WP_User( $user_id );
+
+        // Remove role
+        $u->remove_role( 'subscriber' );
+
+        // Add new roles
+        $u->add_role( 'contributor' );
+        $u->add_role( 'utente_eg' );
+
+    } else {
+        _log('invalid request rtdautorizzaeg_admin_action, missing selecteduser or invalid permission '.var_export($can, true));
+    }
+
+    wp_redirect( $_SERVER['HTTP_REFERER'] );
+    exit();
 
 }
 
 function gestione_ruoli_menu() {
+
+    // add_menu_page( page_title, menu_title, capability, menu_slug, function, icon_url, position );
+    add_menu_page( 'Dreames', 'Dreames','manage_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
+    
+
     //add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $function);
-    add_dashboard_page('Dreames Manager', 'Dreames Manager', 'manage_eg', 'dreams-manage-dashboard', 'gestione_ruoli_menu_page');
+    // add_dashboard_page('Dreames Dashboard', 'DreamesDashboard', 'manage_eg', 'dreams-manage-dashboard', '??dashboard_dream??');
 }
 
 add_action('admin_menu', 'gestione_ruoli_menu');
