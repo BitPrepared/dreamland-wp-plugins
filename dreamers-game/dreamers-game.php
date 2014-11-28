@@ -13,11 +13,11 @@
 function rtd_install(){
 
     //add_role( $role_name, $display_name, $capabilities );
-    add_role( 'utente_eg', 'Esploratore / Guida', array() );
-    add_role( 'capo_reparto', 'Capo Reparto', array() );
-    add_role( 'iabz', 'Incaricato alle branche di zona', array() );
-    add_role( 'iabr', 'Incaricato alle branche di regione', array() );
-    add_role( 'referente_regionale', 'Referente Sfide Regionali', array() );
+    add_role( 'utente_eg', 'Esploratore / Guida', array( "read" => true) );
+    add_role( 'capo_reparto', 'Capo Reparto', array( "read" => true) );
+    add_role( 'iabz', 'Incaricato alle branche di zona', array( "read" => true) );
+    add_role( 'iabr', 'Incaricato alle branche di regione', array( "read" => true) );
+    add_role( 'referente_regionale', 'Referente Sfide Regionali', array( "read" => true) );
 
 }
 
