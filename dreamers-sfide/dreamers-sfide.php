@@ -249,7 +249,7 @@ function register_cpt_sfida_event() {
             'edit_post'          => 'insert_sfide',
             'read_post'          => 'insert_sfide',
             'delete_post'        => 'insert_sfide',
-            'edit_posts'         => 'update_core',
+            'edit_posts'         => 'manage_sfide',
             'edit_others_posts'  => 'manage_sfide',
             'publish_posts'      => 'insert_sfide',
             'read_private_posts' => 'manage_sfide'
