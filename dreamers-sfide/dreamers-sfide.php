@@ -63,6 +63,7 @@ function rtd_sfide_install(){
         $role->add_cap('view_other_sfide_review');
         $role->add_cap('view_sfide_review');
         $role->add_cap('insert_sfide');
+        $role->add_cap('manage_sfide');
         $role->add_cap('promuovi_sfide_review');
     }
 
@@ -275,6 +276,7 @@ function tipologiesfide_taxonomy() {
             )
         )
     );
+    
     $res = wp_insert_term(
       'Grande Sfida', // the term 
       'tipologiesfide', // the taxonomy
