@@ -510,6 +510,7 @@ function sfide_event_limit($post, $args) {
     function update_regione(e){
         sel = e.target;
         selected = sel.options[sel.selectedIndex];
+        if(selected.className == 'A'){ return; } 
         document
             .querySelector("#select_regione > option#" + selected.className)
             .setAttribute("selected", "selected");
@@ -524,6 +525,9 @@ function sfide_event_limit($post, $args) {
                 all[i].setAttribute('hidden', true);
             } else {
                 all[i].removeAttribute('hidden');
+            }
+            if(all[i].className == 'A' && selected.id == 'A'){
+                all[i].setAttribute("selected", "selected");
             }
         }
     }
