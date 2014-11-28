@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Portal bridge
+ * Plugin Name: Return To Dreamland Portal bridge
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin ponte tra portal e wordpress
  * Version: 0.1
