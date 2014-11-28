@@ -69,6 +69,8 @@ function user_notification_password($user_id) {
     $message .= "Utilizza queste credenziali per accedere al pannello di dreamland. \n\n";
     $message .= sprintf(__('Username: %s'), $user->user_login) . "\r\n";
     $message .= sprintf(__('Password: %s'), $plaintext_pass) . "\r\n";
+    $message .= sprintf(__('Authorization code : %s'), 'dr3aml4and') . "\r\n";
+    $message .= 'il campo "Yubikey OTP" va lasciato vuoto' . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
 
     if ( defined('RTD_DEVELOP') && !RTD_DEVELOP ) {
@@ -81,6 +83,9 @@ function inserted_user_dreamers($user , $data, $update) {
     if ( !$update ) {
         $user_id = $user->ID;
         _log('inserted_user_dreamers '.$user_id);
+
+        // @see http://codex.wordpress.org/Function_Reference/wp_update_user
+
         if ( isset($data['meta'] )) {
             foreach ($data['meta'] as $key => $value) {
                 //add_user_meta( $user_id, $meta_key, $meta_value, $unique );
@@ -291,6 +296,8 @@ function gestione_ruoli_menu_page(){
 
 }
 
+// @see http://wordpress.stackexchange.com/questions/10500/how-do-i-best-handle-custom-plugin-page-actions
+
 add_action( 'admin_action_rtdautorizzaeg', 'rtdautorizzaeg_admin_action' );
 
 function rtdautorizzaeg_admin_action()
@@ -324,12 +331,13 @@ function rtdautorizzaeg_admin_action()
 function gestione_ruoli_menu() {
 
     // add_menu_page( page_title, menu_title, capability, menu_slug, function, icon_url, position );
-    add_menu_page( 'Dreames', 'Dreames','manage_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
+    add_menu_page( 'Dreamers', 'Dreamers','manage_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
     
 
     //add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $function);
     // add_dashboard_page('Dreames Dashboard', 'DreamesDashboard', 'manage_eg', 'dreams-manage-dashboard', '??dashboard_dream??');
 }
 
+// @see: https://nayeemmodi.wordpress.com/2011/06/20/creating-menus-and-submenus-in-wordpress/
 add_action('admin_menu', 'gestione_ruoli_menu');
 
