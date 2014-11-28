@@ -332,11 +332,11 @@ function tipologiesfide_taxonomy() {
     }
 
     $res_speciale = wp_insert_term(
-      'Grande Sfida Speciale', // the term 
+      'Sfida Speciale', // the term 
       'tipologiesfide', // the taxonomy
       array(
-        'description'=> 'Grande Sfida',
-        'slug' => 'grande-sfida-speciale',
+        'description'=> 'Sfida Speciale',
+        'slug' => 'sfida-speciale',
         'parent'=> null
       )
     );
@@ -350,7 +350,7 @@ function tipologiesfide_taxonomy() {
           'tipologiesfide', // the taxonomy
           array(
             'description'=> 'Avventura',
-            'slug' => 'grande-sfida-speciale-avventura',
+            'slug' => 'sfida-speciale-avventura',
             'parent'=> $res_speciale['term_id']
           )
         );
@@ -360,7 +360,7 @@ function tipologiesfide_taxonomy() {
           'tipologiesfide', // the taxonomy
           array(
             'description'=> 'Grande Impresa',
-            'slug' => 'grande-sfida-speciale-impresa',
+            'slug' => 'sfida-speciale-impresa',
             'parent'=> $res_speciale['term_id']
           )
         );
@@ -370,7 +370,7 @@ function tipologiesfide_taxonomy() {
           'tipologiesfide', // the taxonomy
           array(
             'description'=> 'Originalità',
-            'slug' => 'grande-sfida-speciale-originalita',
+            'slug' => 'sfida-speciale-originalita',
             'parent'=> $res_speciale['term_id']
           )
         );
@@ -380,7 +380,7 @@ function tipologiesfide_taxonomy() {
           'tipologiesfide', // the taxonomy
           array(
             'description'=> 'Traccia nel Mondo',
-            'slug' => 'grande-sfida-speciale-traccia-nel-mondo',
+            'slug' => 'sfida-speciale-traccia-nel-mondo',
             'parent'=> $res_speciale['term_id']
           )
         );
