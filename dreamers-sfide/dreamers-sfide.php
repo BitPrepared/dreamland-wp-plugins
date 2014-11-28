@@ -779,11 +779,34 @@ function sfide_disponibili_dashboard_widget(){
     );
 
     $posts_array = get_posts($args);
-    echo "<span style=\"text-align:right;\">Hai ". count($posts_array) ." sfide disponibili</span><br>";
-    echo "<ul>";
+
+    $per = array('_year', '_month', '_day', '_hour', '_minute');
+
+    $c = 0;
+    $printout = array();
+
     foreach ($posts_array as $k => $p) {
-        echo '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></li>";
+        
+        $data = array();
+        foreach ($per as $key => $value) {
+            $data[$value] = get_post_meta($p->ID, '_end' . $value);
+        }
+
+        $d = new DateTime($data['_year'][0].'-'.$data['_month'][0].'-'.$data['_day'][0].' '.$data['_month'][0].':'.$data['_minute'][0]);
+        $now = new DateTime();
+
+        if($d > $now) {
+            array_push($printout, '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></li>");
+            $c++;
+        }
     }
+    
+    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
+    echo "<ul>";
+    foreach ($printout as $key => $value) {
+        echo $value;
+    }
+
     echo "</ul>";
 
 }
