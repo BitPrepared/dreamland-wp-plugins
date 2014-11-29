@@ -195,7 +195,7 @@ function gestione_ruoli_menu_page(){
 
         if ( !$skip ) {
         
-            $ruolocensimento = $all_meta_for_user['ruolocensimento'];
+            $ruolocensimento = $all_meta_for_user['ruolocensimento'][0];
 
             echo '<td class="column-columnname">'.$ruolocensimento.'</td>';
             echo '<td class="column-columnname">'.$gruppo.'</td>';
