@@ -795,12 +795,75 @@ function sfide_disponibili_dashboard_widget(){
         $d = new DateTime($data['_year'][0].'-'.$data['_month'][0].'-'.$data['_day'][0].' '.$data['_month'][0].':'.$data['_minute'][0]);
         $now = new DateTime();
 
+        $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
+        $icons = array();
+        $captions = array();
+        $has_shield = False;
+
+        if($terms && ! is_wp_error($terms)){
+            foreach ($terms as $term_key => $term_value) {
+                switch ($term_value->name) {
+                    case 'Avventura':
+                        array_push($icons, array(
+                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/5.png',
+                            'caption' => $term_value->name
+                            )
+                        );                        
+                        break;
+                    case 'Originalita':
+                        array_push($icons, array(
+                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/3.png',
+                            'caption' => $term_value->name
+                            )
+                        );
+                        
+                        break;
+                    case 'Grande Impresa':
+                        array_push($icons, array(
+                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/1.png',
+                            'caption' => $term_value->name
+                            )
+                        );
+                        
+                        break;
+                    case 'Traccia nel Mondo':
+                        array_push($icons, array(
+                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/2.png',
+                            'caption' => $term_value->name
+                            )
+                        );
+                        break;        
+                    case 'Grande Sfida':
+                    case 'Sfida Speciale':
+                        break;
+                    default:
+                        var_dump($term_value);
+                        if($has_shield)
+                            break;
+                        $has_shield = True;
+                        array_push($icons, array(
+                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/6.png',
+                            'caption' => 'Altro'
+                            )
+                        );
+                        break;
+                }
+            }
+        }
+
         if($d > $now) {
-            array_push($printout, '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></li>");
+            $sfida_html = '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>";
+            foreach ($icons as $icon) {
+                $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
+                . 'title="'. $icon['caption'] . '"'
+                .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
+            }
+            $sfida_html = $sfida_html . "</li>";
+            array_push($printout, $sfida_html);
             $c++;
         }
     }
-    
+
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
     echo "<ul>";
     foreach ($printout as $key => $value) {
