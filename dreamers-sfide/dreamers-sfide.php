@@ -9,6 +9,8 @@
  * License: GPLv3
  */
 
+require_once('dreamers-sfide-utils.php');
+require_once("dreamers-sfide-widget.php");
 
 function alert_regional_data_missing(){
     $screen = get_current_screen();
@@ -358,11 +360,11 @@ function tipologiesfide_taxonomy() {
         );
 
         wp_insert_term(
-          'Grande Impresa', // the term 
+          'Altro', // the term 
           'tipologiesfide', // the taxonomy
           array(
-            'description'=> 'Grande Impresa',
-            'slug' => 'sfida-speciale-impresa',
+            'description'=> 'Altro',
+            'slug' => 'sfida-speciale-altro',
             'parent'=> $res_speciale['term_id']
           )
         );
@@ -780,20 +782,15 @@ function sfide_disponibili_dashboard_widget(){
 
     $posts_array = get_posts($args);
 
-    $per = array('_year', '_month', '_day', '_hour', '_minute');
-
     $c = 0;
     $printout = array();
 
     foreach ($posts_array as $k => $p) {
         
-        $data = array();
-        foreach ($per as $key => $value) {
-            $data[$value] = get_post_meta($p->ID, '_end' . $value);
-        }
+        if(!is_sfida_alive($p)) { continue; }
 
-        $d = new DateTime($data['_year'][0].'-'.$data['_month'][0].'-'.$data['_day'][0].' '.$data['_month'][0].':'.$data['_minute'][0]);
-        $now = new DateTime();
+        $user_r = get_user_meta('regione');
+        $user_z = get_user_meta('zona');
 
         $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
@@ -851,17 +848,15 @@ function sfide_disponibili_dashboard_widget(){
             }
         }
 
-        if($d > $now) {
-            $sfida_html = '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>";
-            foreach ($icons as $icon) {
-                $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
-                . 'title="'. $icon['caption'] . '"'
-                .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
-            }
-            $sfida_html = $sfida_html . "</li>";
-            array_push($printout, $sfida_html);
-            $c++;
+        $sfida_html = '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>";
+        foreach ($icons as $icon) {
+            $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
+            . 'title="'. $icon['caption'] . '"'
+            .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
         }
+        $sfida_html = $sfida_html . "</li>";
+        array_push($printout, $sfida_html);
+        $c++;
     }
 
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
@@ -879,6 +874,13 @@ function create_sfide_disponibili_widget(){
 }
 
 add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
+
+// Registra e carica il widget del frontend per le sfide
+function rtd_sfide_load_widget() {
+    register_widget( 'rtd_sfide_widget' );
+}
+
+add_action( 'widgets_init', 'rtd_sfide_load_widget' );
 
 
 // /**
