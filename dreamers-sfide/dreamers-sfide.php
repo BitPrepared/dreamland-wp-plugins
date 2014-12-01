@@ -764,6 +764,8 @@ add_action('manage_sfida_event_posts_custom_column', 'manage_gallery_columns', 1
 
 function sfide_disponibili_dashboard_widget(){
 
+    global $regioni;
+
     $args = array(
         'posts_per_page'   => 10,
         'offset'           => 0,
@@ -788,84 +790,35 @@ function sfide_disponibili_dashboard_widget(){
     foreach ($posts_array as $k => $p) {
         
         if(!is_sfida_alive($p)) { continue; }
+        // if(!is_sfida_for_me($p)) { continue; }
 
         $user_r = get_user_meta('regione');
         $user_z = get_user_meta('zona');
 
-        $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
-        $icons = array();
-        $captions = array();
-        $has_shield = False;
+        $icons = get_icons_for_sfida($p);
 
-        if($terms && ! is_wp_error($terms)){
-            foreach ($terms as $term_key => $term_value) {
-                switch ($term_value->name) {
-                    case 'Avventura':
-                        array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/5.png',
-                            'caption' => $term_value->name
-                            )
-                        );                        
-                        break;
-                    case 'Originalita':
-                        array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/3.png',
-                            'caption' => $term_value->name
-                            )
-                        );
-                        
-                        break;
-                    case 'Grande Impresa':
-                        array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/1.png',
-                            'caption' => $term_value->name
-                            )
-                        );
-                        
-                        break;
-                    case 'Traccia nel Mondo':
-                        array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/2.png',
-                            'caption' => $term_value->name
-                            )
-                        );
-                        break;        
-                    case 'Grande Sfida':
-                    case 'Sfida Speciale':
-                        break;
-                    default:
-                        var_dump($term_value);
-                        if($has_shield)
-                            break;
-                        $has_shield = True;
-                        array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/6.png',
-                            'caption' => 'Altro'
-                            )
-                        );
-                        break;
-                }
-            }
-        }
-
-        $sfida_html = '<li><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>";
+        $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
+        $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
         foreach ($icons as $icon) {
             $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
             . 'title="'. $icon['caption'] . '"'
             .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
         }
-        $sfida_html = $sfida_html . "</li>";
+        $sfida_html = $sfida_html . "</td>";
         array_push($printout, $sfida_html);
         $c++;
     }
 
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
-    echo "<ul>";
+    echo "<table>";
+    echo "<tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr>\n";
     foreach ($printout as $key => $value) {
+        echo "<tr>";
         echo $value;
+        echo "</tr>";
     }
 
-    echo "</ul>";
+    echo "</table>";
 
 }
 

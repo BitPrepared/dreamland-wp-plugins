@@ -53,12 +53,21 @@ class rtd_sfide_widget extends WP_Widget {
 
     	$posts_array = get_posts($args);
 
+    	echo "<ul>";
     	foreach ($posts_array as $key => $value) {
     		$r = get_post_meta($value->ID, '_regione');
     		if($r[0] === "CM_NAZ" && is_sfida_alive($value)){
-    			echo "<p><a href=\"" . get_permalink($value->ID) . " \">" . $value->post_title . "</a></p>";
+    			$icons = get_icons_for_sfida($value);
+    			$res = "<li><a href=\"" . get_permalink($value->ID) . " \">" . $value->post_title . "</a>";
+    			foreach ($icons as $key => $icon) {
+    				$res = $res . '<img style="width:25px; margin: 3px 0px -5px 0px;" src="' . $icon['src'] .
+    				 '" alt="' . $icon['caption'] . '" title="'. $icon['caption'] .'" />'; 
+    			}
+    			$res = $res . "</li>";
+    			echo $res;
     		}
     	}
+    	echo "</ul>";
 
     	if(isset($args['after_widget']))
 			echo $args['after_widget'];
