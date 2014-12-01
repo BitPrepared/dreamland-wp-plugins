@@ -735,13 +735,16 @@ function manage_gallery_columns($column_name, $id) {
             echo $d.'-'.$m.'-'.$y;
             break;
         case 'category_event': 
-            $array = get_the_terms( $id, 'tipologiesfide' );
+            $myarray = get_the_terms( $id, 'tipologiesfide' );
+            if(!$myarray){
+                break;
+            }
             $elenco = '';
-            foreach ($array as $key => $value) {
-                if ( $array[$key]->parent == false ) {
-                    $parent = $array[$key]->name;
+            foreach ($myarray as $key => $value) {
+                if ( $myarray[$key]->parent == false ) {
+                    $parent = $myarray[$key]->name;
                 } else {
-                    $elenco .= ','.$array[$key]->name;
+                    $elenco .= ','.$myarray[$key]->name;
                 }
             }
             echo $parent.' ['.substr($elenco, 1).']';
@@ -767,7 +770,7 @@ function sfide_disponibili_dashboard_widget(){
     global $regioni;
 
     $args = array(
-        'posts_per_page'   => 10,
+        'posts_per_page'   => -1,
         'offset'           => 0,
         'orderby'          => 'post_date',
         'order'            => 'DESC',
@@ -790,7 +793,7 @@ function sfide_disponibili_dashboard_widget(){
     foreach ($posts_array as $k => $p) {
         
         if(!is_sfida_alive($p)) { continue; }
-        // if(!is_sfida_for_me($p)) { continue; }
+        if(!is_sfida_for_me($p)) { continue; }
 
         $user_r = get_user_meta('regione');
         $user_z = get_user_meta('zona');

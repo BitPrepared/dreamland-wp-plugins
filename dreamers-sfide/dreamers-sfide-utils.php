@@ -43,23 +43,32 @@ function get_limit_sfida($p, $regioni){
 function is_sfida_for_me($p, $debug=False){
 
 	$user = array();
-	$user['region'] = reset(get_user_meta('region'));
-	$user['zone'] = reset(get_user_meta('zone'));
+
+	$u_r = get_user_meta(get_current_user_id(),'region');
+	$u_z = get_user_meta(get_current_user_id() ,'zone');
+
+	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
+	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";
 
 	if($debug){
-		echo "<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'];
+		echo "<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'] . " -->";
 	}
 
 	$sfida = array();
-	$sfida['region'] = reset(get_post_meta($p->ID, '_regione'));
-	$sfida['zone'] = reset(get_post_meta($p->ID, '_zona'));
+
+	$s_r = get_post_meta($p->ID, '_regione');
+	$s_z = get_post_meta($p->ID, '_zona');
+
+	$sfida['region'] = ($s_r) ? reset($s_r) : "Nessuna";
+	$sfida['zone'] = ($s_z) ? reset($s_z) : "Nessuna" ;
 
 	if($debug){
-		echo "<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone'];
+		echo "<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->";
 	}
 
-	return $sfida['region'] == "CM_NAZ" || ( $sfida['region'] == $user['region'] &&
-		($sfida['zone'] == "A1" || $sfida['zone'] == $user['zone']));
+	return $sfida['region'] == "CM_NAZ" || // Se la sfida è nazionale oppure
+			( $sfida['region'] == $user['region'] && // Se la regione è la stessa
+				($sfida['zone'] == "-- TUTTE LE ZONE --" || $sfida['zone'] == $user['zone']));
 }
 
 function get_icons_for_sfida($p){
