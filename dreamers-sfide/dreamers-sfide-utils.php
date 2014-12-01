@@ -105,7 +105,7 @@ function get_icons_for_sfida($p){
                     case 'Sfida Speciale':
                         break;
                     default:
-                        var_dump($term_value);
+                        // var_dump($term_value);
                         if($has_shield)
                             break;
                         $has_shield = True;
