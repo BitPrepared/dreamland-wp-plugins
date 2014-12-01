@@ -22,15 +22,59 @@ function rtd_portal_install(){
 
 register_activation_hook(__FILE__,'rtd_portal_install');
 
-add_filter('register', 'wpseRTDPortal_wpRegister');
-
-function wpseRTDPortal_wpRegister($link) {
+add_filter('register', 'register_url_portal');
+function register_url_portal($link) {
     if(!is_user_logged_in()) {
         $link = '<a href="' . site_url('../portal/') . '">' . __('Register') . '</a>';
     }
 
     return $link;
 }
+
+// add_filter( 'registration_redirect' , 'rtd_registration_redirect' );
+// function rtd_registration_redirect() {
+//     return site_url('../portal/')
+// }
+
+// This function wraps around the main redirect function to determine whether or not to bypass the WordPress local URL limitation
+function redirect_wrapper_after_login( $redirect_to, $requested_redirect_to, $user ) {
+  // If they're on the login page, don't do anything
+  if( !isset( $user->user_login ) )
+  {
+      return $redirect_to;
+  }
+
+  if( is_array( $user->roles ) {
+    
+    if( in_array( 'administrator', $user->roles )
+        ||
+        in_array( 'utente_eg', $user->roles )
+        ||
+        in_array( 'capo_reparto', $user->roles )
+        ||
+        in_array( 'referente_regionale', $user->roles )
+         ) {
+      return admin_url();
+
+    } else {
+
+      if( in_array( 'iabz', $user->roles ) || in_array( 'iabr', $user->roles ) ) {
+        // LINK ESTERNO
+        // wp_redirect( $rul_url );
+        // die();
+      }
+
+      return site_url();
+    }
+  }
+
+}
+add_filter( 'login_redirect', 'redirect_wrapper_after_login', 10, 3 );
+
+function prevent_no_portal_register( $user_login, $user_email, $errors ) {
+  $errors->add( 'bad_email_domain', '<strong>ERROR</strong>: Usare il corretto url di registrazione' );
+}
+add_action( 'register_post', 'prevent_no_portal_register', 10, 3 );
 
 function evaluateUserState($id) {
   $user_info = get_userdata( $id );
