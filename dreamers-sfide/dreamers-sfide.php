@@ -810,15 +810,24 @@ function sfide_disponibili_dashboard_widget(){
     }
 
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
-    echo "<table>";
-    echo "<tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr>\n";
+    echo "<table id=\"sfide-disponibili\">";
+    echo "<thead><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><thead>\n";
+    echo "<tbody>\n";
     foreach ($printout as $key => $value) {
         echo "<tr>";
         echo $value;
         echo "</tr>";
     }
-
+    echo "</tbody>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><tfoot>\n";
     echo "</table>";
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($){
+        $('#sfide-disponibili').DataTable();
+    });
+    </script>
+    <?php
 
 }
 
@@ -827,6 +836,13 @@ function create_sfide_disponibili_widget(){
 }
 
 add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
+
+function add_datatable(){
+    wp_enqueue_style( 'data-table-css', '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css');
+    wp_enqueue_script( 'data-table-js', '//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js', array('jquery'));
+}
+
+add_action('wp_dashboard_setup', "add_datatable");
 
 // Registra e carica il widget del frontend per le sfide
 function rtd_sfide_load_widget() {
