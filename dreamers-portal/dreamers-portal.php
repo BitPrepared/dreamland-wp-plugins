@@ -39,12 +39,11 @@ function register_url_portal($link) {
 // This function wraps around the main redirect function to determine whether or not to bypass the WordPress local URL limitation
 function redirect_wrapper_after_login( $redirect_to, $requested_redirect_to, $user ) {
   // If they're on the login page, don't do anything
-  if( !isset( $user->user_login ) )
-  {
+  if( !isset( $user->user_login ) ) {
       return $redirect_to;
   }
 
-  if( is_array( $user->roles ) {
+  if( is_array( $user->roles ) ) {
     
     if( in_array( 'administrator', $user->roles )
         ||
