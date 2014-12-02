@@ -95,9 +95,14 @@ function inserted_user_dreamers($user , $data, $update) {
                 }
             }
 
-            if ( strcmp($data['meta']['ruolocensimento'], 'capo_reparto') == 0 ) {
+            if ( strcmp($data['meta']['ruolocensimento'], 'cr') == 0 ) {
                 $u = new WP_User( $user_id );
                 $u->add_role( 'capo_reparto' );
+            }
+
+            if ( strcmp($data['meta']['ruolocensimento'], 'rr') == 0 ) {
+                $u = new WP_User( $user_id );
+                $u->add_role( 'referente_regionale' );
             }
         }
         $random_password = wp_generate_password( 12, false );
@@ -106,6 +111,7 @@ function inserted_user_dreamers($user , $data, $update) {
         _log('generato '.$random_password);
     }
 }
+
 // add_action( $tag, $function_to_add, $priority, $accepted_args );
 add_action( 'json_insert_user', 'inserted_user_dreamers', 10, 3 );
 
