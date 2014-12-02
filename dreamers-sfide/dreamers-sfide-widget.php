@@ -36,14 +36,14 @@ class rtd_sfide_widget extends WP_Widget {
 
 		// This is where you run the code and display the output
 		$args = array(
-	        'posts_per_page'   => 10,
+	        'posts_per_page'   => 20,
 	        'offset'           => 0,
 	        'orderby'          => 'post_date',
 	        'order'            => 'DESC',
 	        'include'          => '',
 	        'exclude'          => '',
-	        'meta_key'         => '',
-	        'meta_value'       => '',
+	        'meta_key'         => '_regione',
+	        'meta_value'       => 'CM_NAZ',
 	        'post_type'        => 'sfida_event',
 	        'post_mime_type'   => '',
 	        'post_parent'      => '',
@@ -55,8 +55,7 @@ class rtd_sfide_widget extends WP_Widget {
 
     	echo "<ul>";
     	foreach ($posts_array as $key => $value) {
-    		$r = get_post_meta($value->ID, '_regione');
-    		if($r[0] === "CM_NAZ" && is_sfida_alive($value)){
+    		if(is_sfida_alive($value)){
     			$icons = get_icons_for_sfida($value);
     			$res = "<li><a href=\"" . get_permalink($value->ID) . " \">" . $value->post_title . "</a>";
     			foreach ($icons as $key => $icon) {
