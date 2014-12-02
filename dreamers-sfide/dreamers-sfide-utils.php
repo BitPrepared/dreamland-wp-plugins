@@ -42,10 +42,26 @@ function get_limit_sfida($p, $regioni){
 
 function is_sfida_for_me($p, $debug=False){
 
+	if(!is_user_logged_in()){
+		return False;
+	}
+
+	$curr_user = wp_get_current_user();
+
+	$admitted_roles = array('utente_eg', 'administrator', 'editor');
+
+	$is_admitted = False;
+	foreach ($admitted_roles as $role) {
+		$is_admitted = $is_admitted || in_array($role, $admitted_roles);
+	}
+	if(!$is_admitted){
+		return False;
+	}
+
 	$user = array();
 
-	$u_r = get_user_meta(get_current_user_id(),'region');
-	$u_z = get_user_meta(get_current_user_id() ,'zone');
+	$u_r = get_user_meta($curr_user->ID,'region');
+	$u_z = get_user_meta($curr_user->ID ,'zone');
 
 	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
 	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";
