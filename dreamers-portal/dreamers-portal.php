@@ -31,11 +31,6 @@ function register_url_portal($link) {
     return $link;
 }
 
-// add_filter( 'registration_redirect' , 'rtd_registration_redirect' );
-// function rtd_registration_redirect() {
-//     return site_url('../portal/')
-// }
-
 // This function wraps around the main redirect function to determine whether or not to bypass the WordPress local URL limitation
 function redirect_wrapper_after_login( $redirect_to, $requested_redirect_to, $user ) {
   // If they're on the login page, don't do anything
@@ -128,3 +123,42 @@ function refresh_login() {
 }
 
 add_action('init', 'refresh_login');
+
+
+
+function portal_api_init() {
+  global $portal_api;
+
+  $portal_api = new Portal_API();
+  add_filter( 'json_endpoints', array( $portal_api, 'register_routes' ) );
+}
+
+add_action( 'wp_json_server_before_serve', 'portal_api_init' );
+
+class Portal_API {
+
+  public function register_routes( $routes ) {
+    $routes['/portal/sfide'] = array(
+      array( array( $this, 'get_sfide'), WP_JSON_Server::READABLE ),
+      array( array( $this, 'new_iscrizione'), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+    );
+    // $routes['/portal/ara/(?P<id>\d+)'] = array(
+    //   array( array( $this, 'get_post'), WP_JSON_Server::READABLE ),
+    //   array( array( $this, 'edit_post'), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+    //   array( array( $this, 'delete_post'), WP_JSON_Server::DELETABLE ),
+    // );
+    // Add more custom routes here
+    return $routes;
+  }
+
+  public function get_sfide($filter = array(), $context = 'view', $type = null, $page = 1) {
+
+  }
+
+  // WP_JSON_Request $request
+  public function new_iscrizione( $request ) {
+    
+  }
+
+}
+
