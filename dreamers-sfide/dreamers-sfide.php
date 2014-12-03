@@ -107,7 +107,20 @@ function rtd_sfide_uninstall(){
         wp_delete_term( $term->term_id, $taxonomy );
     }
 
-    remove_role('referente_regionale');
+    $role = get_role('referente_regionale');
+    $role->remove_cap('view_other_sfide_review');
+    $role->remove_cap('view_sfide_review');
+    $role->remove_cap('insert_sfide');
+    $role->remove_cap('manage_sfide');
+    $role->remove_cap('promuovi_sfide_review');
+
+    $role = get_role('utente_eg');
+    $role->remove_cap('view_sfide_review');
+    $role->remove_cap('insert_sfide_review');
+
+    $role = get_role('capo_reparto');
+    $role->remove_cap('view_sfide_review');
+    $role->remove_cap('conferma_sfide_review');
 
     $role = get_role('editor');
     $role->remove_cap('insert_sfide');
@@ -124,20 +137,8 @@ function rtd_sfide_uninstall(){
     $role->remove_cap('view_other_sfide_review');
     $role->remove_cap('conferma_sfide_review');
 
-    $role = get_role('capo_reparto');
-    if ( null !== $role ) {
-        $role->remove_cap('view_sfide_review');
-        $role->remove_cap('conferma_sfide_review');
-    }
-
     // When a role is removed, the users who have this role lose all rights on the site.
     // remove_role('nome')
-
-    // $role = get_role('author');
-    // $role->remove_cap('edit_others_pages');
-    // $role->remove_cap('edit_others_posts');
-    // $role->remove_cap('delete_others_pages');
-    // $role->remove_cap('delete_others_posts');
 
 }
 
@@ -402,9 +403,6 @@ function default_comments_off( $data ) {
 }
 add_filter( 'wp_insert_post_data', 'default_comments_off' );
 
-
-
-
 function sfide_custom_meta() {
     if ( current_user_can('insert_sfide') )
     {
@@ -414,10 +412,7 @@ function sfide_custom_meta() {
         add_meta_box( 'sfide_event_end_meta', 'Fine Evento', 'sfide_event_date', 'sfida_event', 'normal', 'default', array('id'=>'_end') );
 	    add_meta_box( 'sfide_event_limit_meta', 'Limita a', 'sfide_event_limit', 'sfida_event', 'normal', 'default', array());
     }
-    if ( current_user_can('promuovi_sfide_review') )
-    {
-        add_meta_box( 'racconti_sfide_meta', 'Avanzate Sfida', 'racconti_sfide_meta_callback', 'sfida_review' );
-    }
+    add_meta_box( 'racconti_sfide_meta', 'Avanzate Sfida', 'racconti_sfide_meta_callback', 'sfida_review' );
 }
 add_action( 'add_meta_boxes', 'sfide_custom_meta' );
 
@@ -546,33 +541,44 @@ function sfide_event_limit($post, $args) {
 function racconti_sfide_meta_callback( $post ) {
     wp_nonce_field( basename( __FILE__ ), 'racconti_sfida_nonce' );
     $racconti_sfide_stored_meta = get_post_meta( $post->ID );
-    ?>
- 
-    <p>
-        <span class="racconti-sfiderow-title">A cura del capo reparto</span>
-        <div class="racconti-sfiderow-content">    
-            <label for="meta-radio-one">
-                <input type="radio" name="meta-radio" id="meta-radio-one" value="radio-one" <?php if ( isset ( $racconti_sfide_stored_meta['meta-radio'] ) ) checked( $racconti_sfide_stored_meta['meta-radio'][0], 'radio-one' ); ?>>
-                Conferma
-            </label>
-            <label for="meta-radio-two">
-                <input type="radio" name="meta-radio" id="meta-radio-two" value="radio-two" <?php if ( isset ( $racconti_sfide_stored_meta['meta-radio'] ) ) checked( $racconti_sfide_stored_meta['meta-radio'][0], 'radio-two' ); ?>>
-                Rigetta
-            </label>
-        </div>
-    </p>
-    <p>
 
-        <span class="racconti-sfiderow-title">A cura degli IRO</span>
+    $sfida_corrente = get_post_meta($post->ID,'sfida_corrente',true);
+
+    if ( !empty($sfida_corrente) ) {
+
+    ?>
+
+    <p>
+        <span class="racconti-sfiderow-title">
+            <div class="racconti-sfiderow-content">
+                <label for="meta-visibilita-bacheca">
+                    Codice sfida : <?php echo $sfida_corrente; ?>
+                </label>
+            </div>
+        </span>
+
+    </p>
+    
+    <?php
+    } else {
+        update_post_meta( $post->ID, 'sfida_corrente', $sfida );
+    }
+    if ( current_user_can('promuovi_sfide_review') ) {
+    ?>
+
+    <p>
+        <span class="racconti-sfiderow-title">Visibilita su bacheca e/g</span>
         <div class="racconti-sfiderow-content">
-            <label for="meta-checkbox">
-                <input type="checkbox" name="meta-checkbox" id="meta-checkbox" value="yes" <?php if ( isset ( $racconti_sfide_stored_meta['meta-checkbox'] ) ) checked( $racconti_sfide_stored_meta['meta-checkbox'][0], 'yes' ); ?> />
+            <label for="meta-visibilita-bacheca">
+                <input type="checkbox" name="meta-visibilita-bacheca" id="meta-visibilita-bacheca" value="yes" <?php if ( isset ( $racconti_sfide_stored_meta['meta-visibilita-bacheca'] ) ) checked( $racconti_sfide_stored_meta['meta-visibilita-bacheca'][0], 'yes' ); ?> />
                 Promuovi
             </label>
         </div>
     </p>
 
     <?php
+
+    }
 }
 
 /**
@@ -591,10 +597,10 @@ function racconti_sfide_meta_save( $post_id ) {
     }
  
     // Checks for input and saves
-    if( isset( $_POST[ 'meta-checkbox' ] ) ) {
-        update_post_meta( $post_id, 'meta-checkbox', 'yes' );
+    if( isset( $_POST[ 'meta-visibilita-bacheca' ] ) ) {
+        update_post_meta( $post_id, 'meta-visibilita-bacheca', 'yes' );
     } else {
-        update_post_meta( $post_id, 'meta-checkbox', '' );
+        update_post_meta( $post_id, 'meta-visibilita-bacheca', '' );
     }
      
     // Checks for input and saves if needed
@@ -664,7 +670,7 @@ function ep_eventposts_save_meta( $post_id, $post ) {
     foreach ( $events_meta as $key => $value ) { // Cycle through the $events_meta array!
         if ( $post->post_type == 'revision' ) return; // Don't store custom data twice
         $value = implode( ',', (array)$value ); // If $value is an array, make it a CSV (unlikely)
-        if ( get_post_meta( $post->ID, $key, FALSE ) ) { // If the custom field already has a value
+        if ( get_post_meta( $post->ID, $key, false ) ) { // If the custom field already has a value
             update_post_meta( $post->ID, $key, $value );
         } else { // If the custom field doesn't have a value
             add_post_meta( $post->ID, $key, $value );
