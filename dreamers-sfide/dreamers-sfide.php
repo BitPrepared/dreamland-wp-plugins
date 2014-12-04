@@ -801,9 +801,6 @@ function sfide_disponibili_dashboard_widget(){
         if(!is_sfida_alive($p)) { continue; }
         if(!is_sfida_for_me($p)) { continue; }
 
-        $user_r = get_user_meta('regione');
-        $user_z = get_user_meta('zona');
-
         $icons = get_icons_for_sfida($p);
 
         $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";

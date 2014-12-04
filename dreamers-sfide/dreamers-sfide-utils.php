@@ -95,7 +95,6 @@ function is_sfida_for_me($p, $debug=false){
 function get_icons_for_sfida($p){
 	$terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
-        $captions = array();
         $has_shield = false;
 
         // http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
