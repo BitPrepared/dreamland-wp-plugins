@@ -24,6 +24,11 @@ function get_limit_sfida($p, $regioni){
 	$r = get_post_meta($p->ID, '_regione');
 	$z = get_post_meta($p->ID, '_zona');
 
+    if ( empty($r) ) {
+        _log('Problema con la sfida '.$p->ID.' e\' senza campi meta obbligatori ');
+        return array();
+    }
+
 	$sfida['region'] = $r[0];
 	$sfida['zone'] = $z[0];
 
