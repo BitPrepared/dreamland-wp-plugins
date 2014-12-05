@@ -92,8 +92,18 @@ function is_sfida_for_me($p, $debug=false){
 				($sfida['zone'] == "-- TUTTE LE ZONE --" || $sfida['zone'] == $user['zone']));
 }
 
+function check_validita_sfida($p) {
+    $id = $p;
+    if ( is_object($p) ) {
+        $id = $p->ID;
+    }
+    $validita = get_post_meta($id,'_validita',true);
+    $bool = filter_var($validita, FILTER_VALIDATE_BOOLEAN);
+    return $bool;
+}
+
 function get_icons_for_sfida($p){
-	$terms = wp_get_object_terms($p->ID, 'tipologiesfide');
+	    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
         $has_shield = false;
 
