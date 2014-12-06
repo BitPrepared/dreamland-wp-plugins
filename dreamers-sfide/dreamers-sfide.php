@@ -61,25 +61,19 @@ function rtd_sfide_install(){
     } 
 
     $role = get_role('referente_regionale');
-    if ( null !== $role ) {
-        $role->add_cap('view_other_sfide_review');
-        $role->add_cap('view_sfide_review');
-        $role->add_cap('insert_sfide');
-        $role->add_cap('manage_sfide');
-        $role->add_cap('promuovi_sfide_review');
-    }
-
+    $role->add_cap('view_other_sfide_review');
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('insert_sfide');
+    $role->add_cap('manage_sfide');
+    $role->add_cap('promuovi_sfide_review');
+    
     $role = get_role('utente_eg');
-    if ( null !== $role ) {
-        $role->add_cap('view_sfide_review');
-        $role->add_cap('insert_sfide_review');
-    }
-
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('insert_sfide_review');
+    
     $role = get_role('capo_reparto');
-    if ( null !== $role ) {
-        $role->add_cap('view_sfide_review');
-        $role->add_cap('conferma_sfide_review');
-    }
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('conferma_sfide_review');
     
     $role = get_role('editor');
     $role->add_cap('insert_sfide');
@@ -194,7 +188,7 @@ function register_cpt_sfida_review() {
             'edit_post'          => 'insert_sfide_review',
             'read_post'          => 'view_sfide_review',
             'delete_post'        => 'insert_sfide_review',
-            'edit_posts'         => 'update_core',
+            'edit_posts'         => 'insert_sfide_review',
             'edit_others_posts'  => 'update_core',
             'publish_posts'      => 'conferma_sfide_review',
             'read_private_posts' => 'view_other_sfide_review'
@@ -276,6 +270,10 @@ function tipologiesfide_taxonomy() {
             'rewrite' => array(
                 'slug' => 'typesfida',
                 'with_front' => false
+            ),
+            'public' => true,
+            'capabilities' => array(
+                'assign_terms' => 'read'
             )
         )
     );
@@ -552,6 +550,14 @@ function sfide_event_limit($post, $args) {
 
 }
 
+// @see http://codex.wordpress.org/Post_Status_Transitions  
+function change_new_sfida_review(){
+    // I NUOVI POST SONO CREATI AD ARTE ALLA CHIUSURA DELLA SFIDA PER POI ESSERE EDITATI SOLTANTO
+    wp_redirect( admin_url().'?errore=no_new_sfida' );
+}
+add_action('new_sfida_review','change_new_sfida_review');
+add_action('auto-draft_sfida_review','change_new_sfida_review');
+
 /**
  * Outputs the content of the meta box ($post e' sfida_review) --> http://themefoundation.com/wordpress-meta-boxes-guide/ x le tipologie
  */
@@ -578,7 +584,7 @@ function racconti_sfide_meta_callback( $post ) {
     
     <?php
     } else {
-        update_post_meta( $post->ID, 'sfida_corrente', $sfida );
+        update_post_meta( $post->ID, 'sfida_corrente', $sfida_corrente);
     }
     if ( current_user_can('promuovi_sfide_review') ) {
     ?>

@@ -80,7 +80,6 @@ function evaluateUserState($id) {
     $codicecensimento = $all_meta_for_user['codicecensimento'][0];
   }
  
-  session_start();
   //session_regenerate_id(true); 
 
   $_SESSION['wordpress'] = array(
@@ -112,6 +111,7 @@ function logout_portal() {
   session_unset();
   // Infine , distrugge la sessione.
   session_destroy();
+  _log('Logout');
 }
 add_action('wp_logout', 'logout_portal');
 

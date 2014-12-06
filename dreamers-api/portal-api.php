@@ -14,6 +14,14 @@ class Portal_API
             array(array($this, 'get_profilo'), WP_JSON_Server::READABLE)
         );
 
+        $routes['/portal/pk'] = array(
+            array(array($this, 'create_profilo'), WP_JSON_Server::READABLE)
+        );
+
+        $routes['/portal/cs'] = array(
+            array(array($this, 'complete_sfida'), WP_JSON_Server::READABLE)
+        );
+
         // $routes['/portal/ara/(?P<id>\d+)'] = array(
         //   array( array( $this, 'get_post'), WP_JSON_Server::READABLE ),
         //   array( array( $this, 'edit_post'), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
@@ -21,6 +29,81 @@ class Portal_API
         // );
         // Add more custom routes here
         return $routes;
+    }
+
+    public function complete_sfida($filter = array(), $context = 'view', $type = null, $page = 1)
+    {
+        $res = array();
+        // is_user_logged_in() && // SCOPRIRE PERCHE' NON VA
+        if ( isset($_SESSION['portal']) ) {
+            if ( isset($_SESSION['portal']['request']) ) {
+                $sfidaid = $_SESSION['portal']['request']['sfidaid'];
+                
+                $wordpress = $_SESSION['wordpress'];
+                $user_id = $wordpress['user_id'];
+
+                // $user = wp_get_current_user();
+                // $user_id = $user->ID;
+                
+                add_user_meta($user_id, '_iscrizioni', $sfidaid, false); //possibile array
+
+                _log('iscrizione completata per '.$user_id.' su sfida '.$sfidaid);
+                unset($_SESSION['portal']['request']);
+                $url_base = '/portal/#/home/reg/ok';
+                $query = 'Iscrizione%20alla%20sfida%20completata%20con%20successo.';
+                wp_redirect("$url_base?msg=$query");
+                exit;
+            }
+        } else {
+            $res['error'] = 'utente non valido';
+        }   
+        
+    }
+
+    public function create_profilo($filter = array(), $context = 'view', $type = null, $page = 1)
+    {
+        $res = array();
+        if ( isset($_SESSION['portal']) ) {
+            if ( isset($_SESSION['portal']['request']) ) {
+                $request = $_SESSION['portal']['request'];
+
+                $userdata = array(
+                    'user_login'  =>  $request['username'],
+                    'user_pass'   =>  $request['password'],
+                    'first_name'   =>  $request['first_name'],
+                    'last_name'   =>  $request['last_name'],
+                    'user_email'   =>  $request['email'],
+                    'nickname'   =>  $request['nickname']
+                );
+
+                $user_id = wp_insert_user( $userdata ) ;
+
+                if ( is_wp_error($user_id) ) {
+                    $res['error'] = $user_id;
+                } else {
+
+                    _log('Creato '.$user_id);
+
+                    $user = new WP_User( $user_id );
+
+                    if ( false === $user ) {
+                        $res['error'] = 'User non trovato..';
+                    } else {
+                        inserted_user_dreamers($user , $request, false);
+                        unset($_SESSION['portal']['request']);
+                        $url_base = '/portal/#/home/reg/ok';
+                        $query = 'Registrazione%20completata%20con%20successo.%20Riceverai%20una%20mail%20con%20le%20nuove%20credenziali.';
+                        wp_redirect("$url_base?msg=$query");
+                        exit;
+                    }
+
+                }
+            }
+        } else {
+            $res['error'] = 'utente non valido';
+        }
+
+        return $res;
     }
 
     public function get_profilo($filter = array(), $context = 'view', $type = null, $page = 1)

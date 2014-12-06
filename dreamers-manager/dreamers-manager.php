@@ -24,14 +24,15 @@ function rtd_manager_install(){
     // add_role( 'capo_reparto', 'Capo Reparto', array( 'manage_eg' ) );
     $role = get_role('editor');
     $role->add_cap('manage_eg');
+    $role->add_cap('abilita_eg');
 
     $role = get_role('administrator');
     $role->add_cap('manage_eg');
+    $role->add_cap('abilita_eg');
 
     $role = get_role('capo_reparto');
-    if ( $role != null ){
-        $role->add_cap('abilita_eg');
-    }
+    $role->add_cap('abilita_eg');
+    
 }
 
 register_activation_hook(__FILE__,'rtd_manager_install');
@@ -47,9 +48,7 @@ function rtd_manager_uninstall(){
     $role->remove_cap('manage_eg');
 
     $role = get_role('capo_reparto');
-    if ( $role != null ){
-        $role->remove_cap('abilita_eg');
-    }
+    $role->remove_cap('abilita_eg');
 }
 
 register_deactivation_hook(__FILE__,'rtd_manager_uninstall');
@@ -97,11 +96,13 @@ function inserted_user_dreamers($user , $data, $update) {
 
             if ( strcmp($data['meta']['ruolocensimento'], 'cr') == 0 ) {
                 $u = new WP_User( $user_id );
-                $u->add_role( 'capo_reparto' );
+                $u->remove_role('subscriber');
+                $u->add_role('capo_reparto');
             }
 
             if ( strcmp($data['meta']['ruolocensimento'], 'rr') == 0 ) {
                 $u = new WP_User( $user_id );
+                $u->remove_role('subscriber');
                 $u->add_role( 'referente_regionale' );
             }
         }
@@ -277,7 +278,7 @@ function gestione_ruoli_menu_page(){
 
         $ruolocensimento = $all_meta_for_user['ruolocensimento'];
 
-        echo '<td class="column-columnname">'.$ruolocensimento.'</td>';
+        echo '<td class="column-columnname">'.implode(',',$ruolocensimento).'</td>';
         echo '<td class="column-columnname">'.$all_meta_for_user['groupDisplay'][0].'</td>';
         echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
         echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
@@ -322,7 +323,6 @@ function rtdautorizzaeg_admin_action()
         $u->remove_role( 'subscriber' );
 
         // Add new roles
-        $u->add_role( 'contributor' );
         $u->add_role( 'utente_eg' );
 
     } else {
@@ -337,7 +337,7 @@ function rtdautorizzaeg_admin_action()
 function gestione_ruoli_menu() {
 
     // add_menu_page( page_title, menu_title, capability, menu_slug, function, icon_url, position );
-    add_menu_page( 'Dreamers', 'Dreamers','manage_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
+    add_menu_page( 'Dreamers', 'Dreamers','abilita_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
     
 
     //add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $function);

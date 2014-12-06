@@ -51,7 +51,7 @@ register_deactivation_hook(__FILE__,'rtd_api_uninstall');
 
 function dreamers_api_init() {
     global $dreamers_api;
-    $dreamers_api = new dreamers_api();
+    $dreamers_api = new Portal_API();
     add_filter( 'json_endpoints', array( $dreamers_api, 'register_routes' ) );
 }
 
