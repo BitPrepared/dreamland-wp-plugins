@@ -242,10 +242,11 @@ function register_cpt_sfida_event() {
         'has_archive' => true,
         'query_var' => true,
         'can_export' => true,
-        'rewrite' => true,
+        // 'rewrite' => false,
+        'rewrite' => array( 'slug' => 'sfida_event', 'with_front' => false ),
         'capabilities' => array(
             'edit_post'          => 'insert_sfide',
-            'read_post'          => 'insert_sfide',
+            'read_post'          => 'read',
             'delete_post'        => 'insert_sfide',
             'edit_posts'         => 'manage_sfide',
             'edit_others_posts'  => 'manage_sfide',
