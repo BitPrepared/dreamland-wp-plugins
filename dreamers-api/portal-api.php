@@ -79,7 +79,16 @@ class Portal_API
                 $user_id = wp_insert_user( $userdata ) ;
 
                 if ( is_wp_error($user_id) ) {
-                    $res['error'] = $user_id;
+
+                    _log('errore creazione utente '.$user_id->get_error_message());
+
+                    unset($_SESSION['portal']['request']);
+                    $url_base = '/portal/#/home/reg/ko'; // /portal/#/home/reg/ko?msg=oo
+                    $query = "Contattare%20l%27assistenza".'%20a%20iscrizioni.rtd%40agesci.it%20:%20'.urlencode($user_id->get_error_message(). '');
+                    wp_redirect("$url_base?msg=$query");
+
+                    exit;
+
                 } else {
 
                     _log('Creato '.$user_id);
@@ -208,6 +217,7 @@ class Portal_API
 
         update_user_meta($user_id, 'sfida_corrente', $post_id);
 
+        $response = json_ensure_response( array() );
         $response->set_status(201);
         $response->header('Location', $_SESSION['sfide']['sfida_url']);
 

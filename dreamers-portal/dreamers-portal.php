@@ -105,7 +105,6 @@ function login_portal($user_login, $user) {
 add_action('wp_login', 'login_portal', 10, 2);
 
 function logout_portal() {
-  session_start();
   // Desetta tutte le variabili di sessione.
   $_SESSION = array();
   session_unset();

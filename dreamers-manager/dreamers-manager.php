@@ -59,10 +59,8 @@ function json_pre_insert_user_dreamers($user , $data) {
 }
 add_filter('json_pre_insert_user','json_pre_insert_user_dreamers', 10 , 2);
 
-function user_notification_password($user_id) {
+function user_notification_password($user_id,$plaintext_pass) {
     $user = get_userdata( $user_id );
-
-    $plaintext_pass = $user->user_pass;
 
     $message  = "Benvenuti in Dreamland \r\n\r\n";
     $message .= "Utilizza queste credenziali per accedere al pannello di dreamland. \n\n";
@@ -72,9 +70,11 @@ function user_notification_password($user_id) {
     $message .= 'il campo "Yubikey OTP" va lasciato vuoto' . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
 
-    if ( defined('RTD_DEVELOP') && !RTD_DEVELOP ) {
+    if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
         wp_mail(get_option('admin_email'), 'New User Registration', $message);
         wp_mail($user->user_email, 'Benvenuti in Dreamland', $message);
+    } else {
+        _log('skip invio mail');
     }
 }
 
@@ -108,7 +108,7 @@ function inserted_user_dreamers($user , $data, $update) {
         }
         $random_password = wp_generate_password( 12, false );
         wp_set_password( $random_password, $user_id );
-        user_notification_password($user_id);
+        user_notification_password($user_id,$random_password);
         _log('generato '.$random_password);
     }
 }
