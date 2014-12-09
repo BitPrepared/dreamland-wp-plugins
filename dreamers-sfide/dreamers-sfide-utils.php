@@ -81,10 +81,34 @@ function is_sfida_for_me($p, $debug=False){
 	if($debug){
 		echo "<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->";
 	}
-
+	
 	return $sfida['region'] == "CM_NAZ" || // Se la sfida è nazionale oppure
 			( $sfida['region'] == $user['region'] && // Se la regione è la stessa
 				($sfida['zone'] == "-- TUTTE LE ZONE --" || $sfida['zone'] == $user['zone']));
+}
+
+function get_iscrizioni(){
+	return get_user_meta(get_current_user_id(), '_iscrizioni');
+}
+
+function is_sfida_subscribed($p, $iscrizioni=False){
+	
+	if( $iscrizioni === False){
+		$iscrizioni = get_iscrizioni();
+	}
+
+	return $iscrizioni && in_array($post->ID, $iscrizioni);
+}
+
+function get_iscrizione_status($p){
+	
+	$q = get_user_meta( get_current_user_id(),'_iscrizione_' . $p->ID);
+	
+	return ($q) ? $q[0] : False;
+}
+
+function set_iscrizione_status($p, $s){
+	update_user_meta(get_current_user_id(), '_iscrizione_' . $p->ID, $s);
 }
 
 function get_icons_for_sfida($p){
@@ -146,3 +170,13 @@ function get_icons_for_sfida($p){
 
         return $icons;
 }
+
+/*
+	REDIRECT DOPO IL LOGIN
+*/
+
+function send_to_dashboard($user_login, $user){
+	wp_redirect(get_admin_url());
+}
+
+add_action('wp_login', 'send_to_dashboard', 10, 2);
