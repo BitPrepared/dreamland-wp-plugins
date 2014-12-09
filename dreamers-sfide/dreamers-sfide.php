@@ -291,49 +291,50 @@ function tipologiesfide_taxonomy() {
 
     //array('term_id'=>12,'term_taxonomy_id'=>34)
 
-    if ( is_array($res) ) {
-
-        wp_insert_term(
-          'Avventura', // the term 
-          'tipologiesfide', // the taxonomy
-          array(
-            'description'=> 'Avventura',
-            'slug' => 'grande-sfida-avventura',
-            'parent'=> $res['term_id']
-          )
-        );
-
-        wp_insert_term(
-          'Grande Impresa', // the term 
-          'tipologiesfide', // the taxonomy
-          array(
-            'description'=> 'Grande Impresa',
-            'slug' => 'grande-sfida-impresa',
-            'parent'=> $res['term_id']
-          )
-        );
-
-        wp_insert_term(
-          'Originalita', // the term 
-          'tipologiesfide', // the taxonomy
-          array(
-            'description'=> 'Originalità',
-            'slug' => 'grande-sfida-originalita',
-            'parent'=> $res['term_id']
-          )
-        );
-
-        wp_insert_term(
-          'Traccia nel Mondo', // the term 
-          'tipologiesfide', // the taxonomy
-          array(
-            'description'=> 'Traccia nel Mondo',
-            'slug' => 'grande-sfida-traccia-nel-mondo',
-            'parent'=> $res['term_id']
-          )
-        );
-
-    }
+//    LA CATEGORIA DELLA GRANDE SFIDA VA SCELTA QUANDO CI SI ISCRIVE
+//    if ( is_array($res) ) {
+//
+//        wp_insert_term(
+//          'Avventura', // the term
+//          'tipologiesfide', // the taxonomy
+//          array(
+//            'description'=> 'Avventura',
+//            'slug' => 'grande-sfida-avventura',
+//            'parent'=> $res['term_id']
+//          )
+//        );
+//
+//        wp_insert_term(
+//          'Grande Impresa', // the term
+//          'tipologiesfide', // the taxonomy
+//          array(
+//            'description'=> 'Grande Impresa',
+//            'slug' => 'grande-sfida-impresa',
+//            'parent'=> $res['term_id']
+//          )
+//        );
+//
+//        wp_insert_term(
+//          'Originalita', // the term
+//          'tipologiesfide', // the taxonomy
+//          array(
+//            'description'=> 'Originalità',
+//            'slug' => 'grande-sfida-originalita',
+//            'parent'=> $res['term_id']
+//          )
+//        );
+//
+//        wp_insert_term(
+//          'Traccia nel Mondo', // the term
+//          'tipologiesfide', // the taxonomy
+//          array(
+//            'description'=> 'Traccia nel Mondo',
+//            'slug' => 'grande-sfida-traccia-nel-mondo',
+//            'parent'=> $res['term_id']
+//          )
+//        );
+//
+//    }
 
     $res_speciale = wp_insert_term(
       'Sfida Speciale', // the term 
@@ -974,7 +975,8 @@ function mie_sfide_dashboard_widget(){
 }
 
 function create_mie_sfide_widget(){
-    wp_add_dashboard_widget( 'le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'mie_sfide_filter' );
+//    wp_add_dashboard_widget( 'le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'mie_sfide_filter' );
+    add_meta_box('le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'dashboard', 'side', 'high');
 }
 
 add_action('wp_dashboard_setup', 'create_mie_sfide_widget');

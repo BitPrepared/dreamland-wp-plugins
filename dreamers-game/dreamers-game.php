@@ -28,7 +28,7 @@ function remove_wp_dashboard_widgets() {
     wp_unregister_sidebar_widget( 'dashboard_plugins' );
     remove_meta_box('dashboard_plugins', 'dashboard', 'normal');
 
-    //Right Now
+    //Right Now - At Glace
     wp_unregister_sidebar_widget( 'dashboard_right_now' );
     remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
 

@@ -190,7 +190,6 @@ function get_icons_for_sfida($p){
 
         return $icons;
 }
-<<<<<<< HEAD
 
 /*
 	REDIRECT DOPO IL LOGIN
@@ -201,5 +200,3 @@ function send_to_dashboard($user_login, $user){
 }
 
 add_action('wp_login', 'send_to_dashboard', 10, 2);
-=======
->>>>>>> 6a72b6f561287b75187bccf9809e054967c7d007

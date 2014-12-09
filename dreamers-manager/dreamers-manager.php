@@ -39,7 +39,6 @@ register_activation_hook(__FILE__,'rtd_manager_install');
 
 function rtd_manager_uninstall(){
     // When a role is removed, the users who have this role lose all rights on the site.
-    // remove_role('capo_reparto');
     
     $role = get_role('editor');
     $role->remove_cap('manage_eg');
