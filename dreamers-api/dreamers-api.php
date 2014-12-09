@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: API Return to Dreamland
+ * Plugin Name: Return To Dreamland API JSON (WP-API)
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin per la fornire API da usare esternamente
  * Version: 0.1

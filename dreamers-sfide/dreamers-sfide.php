@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Sfide Return to Dreamland
+ * Plugin Name: Return to Dreamland - Sfide
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin per la gestione dei "Racconti Sfida"
  * Version: 0.1
@@ -95,11 +95,12 @@ function rtd_sfide_install(){
 }
 
 function rtd_sfide_uninstall(){
-    $taxonomy = 'tipologiesfide';
-    $terms = get_terms($taxonomy); 
-    foreach ($terms as $term) {
-        wp_delete_term( $term->term_id, $taxonomy );
-    }
+//    se venisse eseguito pulirebbe anche i post creati, e questo potrebbe essere un problema
+//    $taxonomy = 'tipologiesfide';
+//    $terms = get_terms($taxonomy);
+//    foreach ($terms as $term) {
+//        wp_delete_term( $term->term_id, $taxonomy );
+//    }
 
     $role = get_role('referente_regionale');
     $role->remove_cap('view_other_sfide_review');
@@ -261,134 +262,139 @@ function register_cpt_sfida_event() {
 
 //TAXONOMIES
 function tipologiesfide_taxonomy() {
-    register_taxonomy(
-        'tipologiesfide',
-        array( 'sfida_review','sfida_event' ),
-        array(
-            'hierarchical' => true,
-            'label' => 'Tipi Sfida',
-            'query_var' => true,
-            'rewrite' => array(
-                'slug' => 'typesfida',
-                'with_front' => false
-            ),
-            'public' => true,
-            'capabilities' => array(
-                'assign_terms' => 'read'
+
+    if (!taxonomy_exists('tipologiesfide')) {
+
+        register_taxonomy(
+            'tipologiesfide',
+            array( 'sfida_review','sfida_event' ),
+            array(
+                'hierarchical' => true,
+                'label' => 'Tipi Sfida',
+                'query_var' => true,
+                'rewrite' => array(
+                    'slug' => 'typesfida',
+                    'with_front' => false
+                ),
+                'public' => true,
+                'capabilities' => array(
+                    'assign_terms' => 'read'
+                )
             )
-        )
-    );
-    
-    $res = wp_insert_term(
-      'Grande Sfida', // the term 
-      'tipologiesfide', // the taxonomy
-      array(
-        'description'=> 'Grande Sfida',
-        'slug' => 'grande-sfida',
-        'parent'=> null
-      )
-    );
+        );
 
-    //array('term_id'=>12,'term_taxonomy_id'=>34)
-
-//    LA CATEGORIA DELLA GRANDE SFIDA VA SCELTA QUANDO CI SI ISCRIVE
-//    if ( is_array($res) ) {
-//
-//        wp_insert_term(
-//          'Avventura', // the term
-//          'tipologiesfide', // the taxonomy
-//          array(
-//            'description'=> 'Avventura',
-//            'slug' => 'grande-sfida-avventura',
-//            'parent'=> $res['term_id']
-//          )
-//        );
-//
-//        wp_insert_term(
-//          'Grande Impresa', // the term
-//          'tipologiesfide', // the taxonomy
-//          array(
-//            'description'=> 'Grande Impresa',
-//            'slug' => 'grande-sfida-impresa',
-//            'parent'=> $res['term_id']
-//          )
-//        );
-//
-//        wp_insert_term(
-//          'Originalita', // the term
-//          'tipologiesfide', // the taxonomy
-//          array(
-//            'description'=> 'Originalità',
-//            'slug' => 'grande-sfida-originalita',
-//            'parent'=> $res['term_id']
-//          )
-//        );
-//
-//        wp_insert_term(
-//          'Traccia nel Mondo', // the term
-//          'tipologiesfide', // the taxonomy
-//          array(
-//            'description'=> 'Traccia nel Mondo',
-//            'slug' => 'grande-sfida-traccia-nel-mondo',
-//            'parent'=> $res['term_id']
-//          )
-//        );
-//
-//    }
-
-    $res_speciale = wp_insert_term(
-      'Sfida Speciale', // the term 
-      'tipologiesfide', // the taxonomy
-      array(
-        'description'=> 'Sfida Speciale',
-        'slug' => 'sfida-speciale',
-        'parent'=> null
-      )
-    );
-
-    //array('term_id'=>12,'term_taxonomy_id'=>34)
-
-    if ( is_array($res_speciale) ) {
-
-        wp_insert_term(
-          'Avventura', // the term 
+        $res = wp_insert_term(
+          'Grande Sfida', // the term
           'tipologiesfide', // the taxonomy
           array(
-            'description'=> 'Avventura',
-            'slug' => 'sfida-speciale-avventura',
-            'parent'=> $res_speciale['term_id']
+            'description'=> 'Grande Sfida',
+            'slug' => 'grande-sfida',
+            'parent'=> null
           )
         );
 
-        wp_insert_term(
-          'Altro', // the term 
+        //array('term_id'=>12,'term_taxonomy_id'=>34)
+
+    //    LA CATEGORIA DELLA GRANDE SFIDA VA SCELTA QUANDO CI SI ISCRIVE
+    //    if ( is_array($res) ) {
+    //
+    //        wp_insert_term(
+    //          'Avventura', // the term
+    //          'tipologiesfide', // the taxonomy
+    //          array(
+    //            'description'=> 'Avventura',
+    //            'slug' => 'grande-sfida-avventura',
+    //            'parent'=> $res['term_id']
+    //          )
+    //        );
+    //
+    //        wp_insert_term(
+    //          'Grande Impresa', // the term
+    //          'tipologiesfide', // the taxonomy
+    //          array(
+    //            'description'=> 'Grande Impresa',
+    //            'slug' => 'grande-sfida-impresa',
+    //            'parent'=> $res['term_id']
+    //          )
+    //        );
+    //
+    //        wp_insert_term(
+    //          'Originalita', // the term
+    //          'tipologiesfide', // the taxonomy
+    //          array(
+    //            'description'=> 'Originalità',
+    //            'slug' => 'grande-sfida-originalita',
+    //            'parent'=> $res['term_id']
+    //          )
+    //        );
+    //
+    //        wp_insert_term(
+    //          'Traccia nel Mondo', // the term
+    //          'tipologiesfide', // the taxonomy
+    //          array(
+    //            'description'=> 'Traccia nel Mondo',
+    //            'slug' => 'grande-sfida-traccia-nel-mondo',
+    //            'parent'=> $res['term_id']
+    //          )
+    //        );
+    //
+    //    }
+
+        $res_speciale = wp_insert_term(
+          'Sfida Speciale', // the term
           'tipologiesfide', // the taxonomy
           array(
-            'description'=> 'Altro',
-            'slug' => 'sfida-speciale-altro',
-            'parent'=> $res_speciale['term_id']
+            'description'=> 'Sfida Speciale',
+            'slug' => 'sfida-speciale',
+            'parent'=> null
           )
         );
 
-        wp_insert_term(
-          'Originalita', // the term 
-          'tipologiesfide', // the taxonomy
-          array(
-            'description'=> 'Originalità',
-            'slug' => 'sfida-speciale-originalita',
-            'parent'=> $res_speciale['term_id']
-          )
-        );
+        //array('term_id'=>12,'term_taxonomy_id'=>34)
 
-        wp_insert_term(
-          'Traccia nel Mondo', // the term 
-          'tipologiesfide', // the taxonomy
-          array(
-            'description'=> 'Traccia nel Mondo',
-            'slug' => 'sfida-speciale-traccia-nel-mondo',
-            'parent'=> $res_speciale['term_id']
-          )
-        );
+        if ( is_array($res_speciale) ) {
+
+            wp_insert_term(
+              'Avventura', // the term
+              'tipologiesfide', // the taxonomy
+              array(
+                'description'=> 'Avventura',
+                'slug' => 'sfida-speciale-avventura',
+                'parent'=> $res_speciale['term_id']
+              )
+            );
+
+            wp_insert_term(
+              'Altro', // the term
+              'tipologiesfide', // the taxonomy
+              array(
+                'description'=> 'Altro',
+                'slug' => 'sfida-speciale-altro',
+                'parent'=> $res_speciale['term_id']
+              )
+            );
+
+            wp_insert_term(
+              'Originalita', // the term
+              'tipologiesfide', // the taxonomy
+              array(
+                'description'=> 'Originalità',
+                'slug' => 'sfida-speciale-originalita',
+                'parent'=> $res_speciale['term_id']
+              )
+            );
+
+            wp_insert_term(
+              'Traccia nel Mondo', // the term
+              'tipologiesfide', // the taxonomy
+              array(
+                'description'=> 'Traccia nel Mondo',
+                'slug' => 'sfida-speciale-traccia-nel-mondo',
+                'parent'=> $res_speciale['term_id']
+              )
+            );
+
+        }
 
     }
     
