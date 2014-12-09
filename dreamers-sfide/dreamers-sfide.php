@@ -765,6 +765,10 @@ function manage_gallery_columns($column_name, $id) {
 // Add to admin_init function manage_{custom_type}_posts_custom_column
 add_action('manage_sfida_event_posts_custom_column', 'manage_gallery_columns', 10, 2);
 
+/*
+        WIDGET SFIDE DISPONIBILI
+*/
+
 function sfide_disponibili_dashboard_widget(){
 
     global $regioni;
@@ -839,6 +843,88 @@ function create_sfide_disponibili_widget(){
 }
 
 add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
+
+/*
+        WIDGET LE MIE SFIDE
+*/
+
+function mie_sfide_dashboard_widget(){
+
+    global $regioni;
+
+    $args = array(
+        'posts_per_page'   => -1,
+        'offset'           => 0,
+        'orderby'          => 'post_date',
+        'order'            => 'DESC',
+        'include'          => '',
+        'exclude'          => '',
+        'meta_key'         => '',
+        'meta_value'       => '',
+        'post_type'        => 'sfida_event',
+        'post_mime_type'   => '',
+        'post_parent'      => '',
+        'post_status'      => 'publish',
+        'suppress_filters' => true
+    );
+
+    $posts_array = get_posts($args);
+
+    $c = 0;
+    $printout = array();
+
+    foreach ($posts_array as $k => $p) {
+        
+        // if(!is_sfida_alive($p)) { continue; }
+        // if(!is_sfida_for_me($p)) { continue; }
+        if(!is_sfida_subscribed($p)) { continue;}
+
+        $user_r = get_user_meta('regione');
+        $user_z = get_user_meta('zona');
+
+        $icons = get_icons_for_sfida($p);
+
+        $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
+        $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
+        foreach ($icons as $icon) {
+            $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
+            . 'title="'. $icon['caption'] . '"'
+            .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
+        }
+        $sfida_html = $sfida_html . "</td>";
+        $sfida_html .= '<td>' . get_iscrizione_status($p) . '</td>';
+        array_push($printout, $sfida_html);
+        $c++;
+    }
+
+    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
+    echo "<table id=\"le-mie-sfide\">";
+    echo "<thead><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th></tr><thead>\n";
+    echo "<tbody>\n";
+    foreach ($printout as $key => $value) {
+        echo "<tr>";
+        echo $value;
+        echo "</tr>";
+    }
+    echo "</tbody>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><tfoot>\n";
+    echo "</table>";
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($){
+        $('#le-mie-sfide').DataTable();
+    });
+    </script>
+    <?php
+
+}
+
+function create_mie_sfide_widget(){
+    wp_add_dashboard_widget( 'le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'mie_sfide_filter' );
+}
+
+add_action('wp_dashboard_setup', 'create_mie_sfide_widget');
+
 
 function add_datatable(){
     wp_enqueue_style( 'data-table-css', '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css');
