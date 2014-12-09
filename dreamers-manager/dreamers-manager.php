@@ -24,14 +24,15 @@ function rtd_manager_install(){
     // add_role( 'capo_reparto', 'Capo Reparto', array( 'manage_eg' ) );
     $role = get_role('editor');
     $role->add_cap('manage_eg');
+    $role->add_cap('abilita_eg');
 
     $role = get_role('administrator');
     $role->add_cap('manage_eg');
+    $role->add_cap('abilita_eg');
 
     $role = get_role('capo_reparto');
-    if ( $role != null ){
-        $role->add_cap('abilita_eg');
-    }
+    $role->add_cap('abilita_eg');
+    
 }
 
 register_activation_hook(__FILE__,'rtd_manager_install');
@@ -47,9 +48,7 @@ function rtd_manager_uninstall(){
     $role->remove_cap('manage_eg');
 
     $role = get_role('capo_reparto');
-    if ( $role != null ){
-        $role->remove_cap('abilita_eg');
-    }
+    $role->remove_cap('abilita_eg');
 }
 
 register_deactivation_hook(__FILE__,'rtd_manager_uninstall');
@@ -60,10 +59,8 @@ function json_pre_insert_user_dreamers($user , $data) {
 }
 add_filter('json_pre_insert_user','json_pre_insert_user_dreamers', 10 , 2);
 
-function user_notification_password($user_id) {
+function user_notification_password($user_id,$plaintext_pass) {
     $user = get_userdata( $user_id );
-
-    $plaintext_pass = $user->user_pass;
 
     $message  = "Benvenuti in Dreamland \r\n\r\n";
     $message .= "Utilizza queste credenziali per accedere al pannello di dreamland. \n\n";
@@ -73,9 +70,11 @@ function user_notification_password($user_id) {
     $message .= 'il campo "Yubikey OTP" va lasciato vuoto' . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
 
-    if ( defined('RTD_DEVELOP') && !RTD_DEVELOP ) {
+    if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
         wp_mail(get_option('admin_email'), 'New User Registration', $message);
         wp_mail($user->user_email, 'Benvenuti in Dreamland', $message);
+    } else {
+        _log('skip invio mail');
     }
 }
 
@@ -95,17 +94,25 @@ function inserted_user_dreamers($user , $data, $update) {
                 }
             }
 
-            if ( strcmp($data['meta']['ruolocensimento'], 'capo_reparto') == 0 ) {
+            if ( strcmp($data['meta']['ruolocensimento'], 'cr') == 0 ) {
                 $u = new WP_User( $user_id );
-                $u->add_role( 'capo_reparto' );
+                $u->remove_role('subscriber');
+                $u->add_role('capo_reparto');
+            }
+
+            if ( strcmp($data['meta']['ruolocensimento'], 'rr') == 0 ) {
+                $u = new WP_User( $user_id );
+                $u->remove_role('subscriber');
+                $u->add_role( 'referente_regionale' );
             }
         }
         $random_password = wp_generate_password( 12, false );
         wp_set_password( $random_password, $user_id );
-        user_notification_password($user_id);
+        user_notification_password($user_id,$random_password);
         _log('generato '.$random_password);
     }
 }
+
 // add_action( $tag, $function_to_add, $priority, $accepted_args );
 add_action( 'json_insert_user', 'inserted_user_dreamers', 10, 3 );
 
@@ -271,7 +278,7 @@ function gestione_ruoli_menu_page(){
 
         $ruolocensimento = $all_meta_for_user['ruolocensimento'];
 
-        echo '<td class="column-columnname">'.$ruolocensimento.'</td>';
+        echo '<td class="column-columnname">'.implode(',',$ruolocensimento).'</td>';
         echo '<td class="column-columnname">'.$all_meta_for_user['groupDisplay'][0].'</td>';
         echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
         echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
@@ -316,7 +323,6 @@ function rtdautorizzaeg_admin_action()
         $u->remove_role( 'subscriber' );
 
         // Add new roles
-        $u->add_role( 'contributor' );
         $u->add_role( 'utente_eg' );
 
     } else {
@@ -331,7 +337,7 @@ function rtdautorizzaeg_admin_action()
 function gestione_ruoli_menu() {
 
     // add_menu_page( page_title, menu_title, capability, menu_slug, function, icon_url, position );
-    add_menu_page( 'Dreamers', 'Dreamers','manage_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
+    add_menu_page( 'Dreamers', 'Dreamers','abilita_eg', 'dreamers', 'gestione_ruoli_menu_page',plugins_url( '/dreamers-manager/images/icon-eg-16x16.png', 2 ) );
     
 
     //add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $function);

@@ -31,11 +31,6 @@ function register_url_portal($link) {
     return $link;
 }
 
-// add_filter( 'registration_redirect' , 'rtd_registration_redirect' );
-// function rtd_registration_redirect() {
-//     return site_url('../portal/')
-// }
-
 // This function wraps around the main redirect function to determine whether or not to bypass the WordPress local URL limitation
 function redirect_wrapper_after_login( $redirect_to, $requested_redirect_to, $user ) {
   // If they're on the login page, don't do anything
@@ -85,7 +80,6 @@ function evaluateUserState($id) {
     $codicecensimento = $all_meta_for_user['codicecensimento'][0];
   }
  
-  session_start();
   //session_regenerate_id(true); 
 
   $_SESSION['wordpress'] = array(
@@ -111,12 +105,12 @@ function login_portal($user_login, $user) {
 add_action('wp_login', 'login_portal', 10, 2);
 
 function logout_portal() {
-  session_start();
   // Desetta tutte le variabili di sessione.
   $_SESSION = array();
   session_unset();
   // Infine , distrugge la sessione.
   session_destroy();
+  _log('Logout');
 }
 add_action('wp_logout', 'logout_portal');
 

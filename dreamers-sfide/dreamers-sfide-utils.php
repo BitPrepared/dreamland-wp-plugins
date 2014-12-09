@@ -24,6 +24,11 @@ function get_limit_sfida($p, $regioni){
 	$r = get_post_meta($p->ID, '_regione');
 	$z = get_post_meta($p->ID, '_zona');
 
+    if ( empty($r) ) {
+        _log('Problema con la sfida '.$p->ID.' e\' senza campi meta obbligatori ');
+        return array();
+    }
+
 	$sfida['region'] = $r[0];
 	$sfida['zone'] = $z[0];
 
@@ -40,22 +45,22 @@ function get_limit_sfida($p, $regioni){
 	return $res;
 }
 
-function is_sfida_for_me($p, $debug=False){
+function is_sfida_for_me($p, $debug=false){
 
 	if(!is_user_logged_in()){
-		return False;
+		return false;
 	}
 
 	$curr_user = wp_get_current_user();
 
 	$admitted_roles = array('utente_eg', 'administrator', 'editor');
 
-	$is_admitted = False;
+	$is_admitted = false;
 	foreach ($admitted_roles as $role) {
 		$is_admitted = $is_admitted || in_array($role, $admitted_roles);
 	}
 	if(!$is_admitted){
-		return False;
+		return false;
 	}
 
 	$user = array();
@@ -111,25 +116,40 @@ function set_iscrizione_status($p, $s){
 	update_user_meta(get_current_user_id(), '_iscrizione_' . $p->ID, $s);
 }
 
+function check_validita_sfida($p) {
+    $id = $p;
+    if ( is_object($p) ) {
+        $id = $p->ID;
+    }
+    $validita = get_post_meta($id,'_validita',true);
+    $bool = filter_var($validita, FILTER_VALIDATE_BOOLEAN);
+    return $bool;
+}
+
+
+
 function get_icons_for_sfida($p){
-	$terms = wp_get_object_terms($p->ID, 'tipologiesfide');
+	    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
-        $captions = array();
-        $has_shield = False;
+        $has_shield = false;
+
+        // http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
+        // in particolare http://codex.wordpress.org/Function_Reference/plugin_dir_url
+        $wp_plugin_url = plugin_dir_url( __FILE__ );
 
         if($terms && ! is_wp_error($terms)){
             foreach ($terms as $term_key => $term_value) {
                 switch ($term_value->name) {
                     case 'Avventura':
                         array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/5.png',
+                            'src' => $wp_plugin_url.'images/5.png',
                             'caption' => $term_value->name
                             )
                         );                        
                         break;
                     case 'Originalita':
                         array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/3.png',
+                            'src' => $wp_plugin_url.'images/3.png',
                             'caption' => $term_value->name
                             )
                         );
@@ -137,7 +157,7 @@ function get_icons_for_sfida($p){
                         break;
                     case 'Grande Impresa':
                         array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/1.png',
+                            'src' => $wp_plugin_url.'images/1.png',
                             'caption' => $term_value->name
                             )
                         );
@@ -145,7 +165,7 @@ function get_icons_for_sfida($p){
                         break;
                     case 'Traccia nel Mondo':
                         array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/2.png',
+                            'src' => $wp_plugin_url.'images/2.png',
                             'caption' => $term_value->name
                             )
                         );
@@ -159,7 +179,7 @@ function get_icons_for_sfida($p){
                             break;
                         $has_shield = True;
                         array_push($icons, array(
-                            'src' => 'http://returntodreamland.agesci.org/blog/wp-content/uploads/2014/10/6.png',
+                            'src' => $wp_plugin_url.'images/6.png',
                             'caption' => 'Altro'
                             )
                         );
@@ -170,6 +190,7 @@ function get_icons_for_sfida($p){
 
         return $icons;
 }
+<<<<<<< HEAD
 
 /*
 	REDIRECT DOPO IL LOGIN
@@ -180,3 +201,5 @@ function send_to_dashboard($user_login, $user){
 }
 
 add_action('wp_login', 'send_to_dashboard', 10, 2);
+=======
+>>>>>>> 6a72b6f561287b75187bccf9809e054967c7d007

@@ -61,25 +61,19 @@ function rtd_sfide_install(){
     } 
 
     $role = get_role('referente_regionale');
-    if ( null !== $role ) {
-        $role->add_cap('view_other_sfide_review');
-        $role->add_cap('view_sfide_review');
-        $role->add_cap('insert_sfide');
-        $role->add_cap('manage_sfide');
-        $role->add_cap('promuovi_sfide_review');
-    }
-
+    $role->add_cap('view_other_sfide_review');
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('insert_sfide');
+    $role->add_cap('manage_sfide');
+    $role->add_cap('promuovi_sfide_review');
+    
     $role = get_role('utente_eg');
-    if ( null !== $role ) {
-        $role->add_cap('view_sfide_review');
-        $role->add_cap('insert_sfide_review');
-    }
-
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('insert_sfide_review');
+    
     $role = get_role('capo_reparto');
-    if ( null !== $role ) {
-        $role->add_cap('view_sfide_review');
-        $role->add_cap('conferma_sfide_review');
-    }
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('conferma_sfide_review');
     
     $role = get_role('editor');
     $role->add_cap('insert_sfide');
@@ -107,7 +101,20 @@ function rtd_sfide_uninstall(){
         wp_delete_term( $term->term_id, $taxonomy );
     }
 
-    remove_role('referente_regionale');
+    $role = get_role('referente_regionale');
+    $role->remove_cap('view_other_sfide_review');
+    $role->remove_cap('view_sfide_review');
+    $role->remove_cap('insert_sfide');
+    $role->remove_cap('manage_sfide');
+    $role->remove_cap('promuovi_sfide_review');
+
+    $role = get_role('utente_eg');
+    $role->remove_cap('view_sfide_review');
+    $role->remove_cap('insert_sfide_review');
+
+    $role = get_role('capo_reparto');
+    $role->remove_cap('view_sfide_review');
+    $role->remove_cap('conferma_sfide_review');
 
     $role = get_role('editor');
     $role->remove_cap('insert_sfide');
@@ -124,20 +131,8 @@ function rtd_sfide_uninstall(){
     $role->remove_cap('view_other_sfide_review');
     $role->remove_cap('conferma_sfide_review');
 
-    $role = get_role('capo_reparto');
-    if ( null !== $role ) {
-        $role->remove_cap('view_sfide_review');
-        $role->remove_cap('conferma_sfide_review');
-    }
-
     // When a role is removed, the users who have this role lose all rights on the site.
     // remove_role('nome')
-
-    // $role = get_role('author');
-    // $role->remove_cap('edit_others_pages');
-    // $role->remove_cap('edit_others_posts');
-    // $role->remove_cap('delete_others_pages');
-    // $role->remove_cap('delete_others_posts');
 
 }
 
@@ -193,7 +188,7 @@ function register_cpt_sfida_review() {
             'edit_post'          => 'insert_sfide_review',
             'read_post'          => 'view_sfide_review',
             'delete_post'        => 'insert_sfide_review',
-            'edit_posts'         => 'update_core',
+            'edit_posts'         => 'insert_sfide_review',
             'edit_others_posts'  => 'update_core',
             'publish_posts'      => 'conferma_sfide_review',
             'read_private_posts' => 'view_other_sfide_review'
@@ -247,10 +242,11 @@ function register_cpt_sfida_event() {
         'has_archive' => true,
         'query_var' => true,
         'can_export' => true,
-        'rewrite' => true,
+        // 'rewrite' => false,
+        'rewrite' => array( 'slug' => 'sfida_event', 'with_front' => false ),
         'capabilities' => array(
             'edit_post'          => 'insert_sfide',
-            'read_post'          => 'insert_sfide',
+            'read_post'          => 'read',
             'delete_post'        => 'insert_sfide',
             'edit_posts'         => 'manage_sfide',
             'edit_others_posts'  => 'manage_sfide',
@@ -275,6 +271,10 @@ function tipologiesfide_taxonomy() {
             'rewrite' => array(
                 'slug' => 'typesfida',
                 'with_front' => false
+            ),
+            'public' => true,
+            'capabilities' => array(
+                'assign_terms' => 'read'
             )
         )
     );
@@ -393,6 +393,23 @@ function tipologiesfide_taxonomy() {
     
 }
 
+// Display any errors
+function sfide_admin_notice_handler() {
+    $errors = get_option('sfide_admin_errors');
+    if($errors) {
+        echo '<div class="error"><p>' . $errors . '</p></div>';
+    }
+}
+add_action( 'admin_notices', 'sfide_admin_notice_handler' );
+
+// Clear any errors
+function sfide_clear_errors() {
+
+    update_option('sfide_admin_errors', false);
+
+}
+add_action( 'admin_footer', 'sfide_clear_errors' );
+
 function default_comments_off( $data ) {
     if( $data['post_type'] == 'sfida_review' || $data['post_type'] == 'sfida_event' ) {
         $data['comment_status'] = 0;
@@ -401,9 +418,6 @@ function default_comments_off( $data ) {
     return $data;
 }
 add_filter( 'wp_insert_post_data', 'default_comments_off' );
-
-
-
 
 function sfide_custom_meta() {
     if ( current_user_can('insert_sfide') )
@@ -414,10 +428,7 @@ function sfide_custom_meta() {
         add_meta_box( 'sfide_event_end_meta', 'Fine Evento', 'sfide_event_date', 'sfida_event', 'normal', 'default', array('id'=>'_end') );
 	    add_meta_box( 'sfide_event_limit_meta', 'Limita a', 'sfide_event_limit', 'sfida_event', 'normal', 'default', array());
     }
-    if ( current_user_can('promuovi_sfide_review') )
-    {
-        add_meta_box( 'racconti_sfide_meta', 'Avanzate Sfida', 'racconti_sfide_meta_callback', 'sfida_review' );
-    }
+    add_meta_box( 'racconti_sfide_meta', 'Avanzate Sfida', 'racconti_sfide_meta_callback', 'sfida_review' );
 }
 add_action( 'add_meta_boxes', 'sfide_custom_meta' );
 
@@ -426,7 +437,7 @@ function sfide_event_date($post, $args) {
     global $post, $wp_locale;
 
     // Use nonce for verification
-    wp_nonce_field( plugin_basename( __FILE__ ), 'ep_eventposts_nonce' );
+    wp_nonce_field( plugin_basename( __FILE__ ), 'stida_event_nonce' );
 
     $time_adj = current_time( 'timestamp' );
     $month = get_post_meta( $post->ID, $metabox_id . '_month', true );
@@ -484,7 +495,7 @@ function sfide_event_limit($post, $args) {
     $curr_zon = get_post_meta($post->ID, '_zona', 1);
 
     // Use nonce for verification
-    wp_nonce_field( plugin_basename( __FILE__ ), 'ep_eventposts_nonce' );
+    wp_nonce_field( plugin_basename( __FILE__ ), 'stida_event_nonce' );
 
     // create menu input per regione 
     echo '<select id="select_regione" name="_regione" onchange="update_zone(event)">'."\n";
@@ -540,46 +551,65 @@ function sfide_event_limit($post, $args) {
 
 }
 
+// @see http://codex.wordpress.org/Post_Status_Transitions  
+function change_new_sfida_review(){
+    // I NUOVI POST SONO CREATI AD ARTE ALLA CHIUSURA DELLA SFIDA PER POI ESSERE EDITATI SOLTANTO
+    wp_redirect( admin_url().'?errore=no_new_sfida' );
+}
+add_action('new_sfida_review','change_new_sfida_review');
+add_action('auto-draft_sfida_review','change_new_sfida_review');
+
 /**
  * Outputs the content of the meta box ($post e' sfida_review) --> http://themefoundation.com/wordpress-meta-boxes-guide/ x le tipologie
  */
 function racconti_sfide_meta_callback( $post ) {
     wp_nonce_field( basename( __FILE__ ), 'racconti_sfida_nonce' );
     $racconti_sfide_stored_meta = get_post_meta( $post->ID );
-    ?>
- 
-    <p>
-        <span class="racconti-sfiderow-title">A cura del capo reparto</span>
-        <div class="racconti-sfiderow-content">    
-            <label for="meta-radio-one">
-                <input type="radio" name="meta-radio" id="meta-radio-one" value="radio-one" <?php if ( isset ( $racconti_sfide_stored_meta['meta-radio'] ) ) checked( $racconti_sfide_stored_meta['meta-radio'][0], 'radio-one' ); ?>>
-                Conferma
-            </label>
-            <label for="meta-radio-two">
-                <input type="radio" name="meta-radio" id="meta-radio-two" value="radio-two" <?php if ( isset ( $racconti_sfide_stored_meta['meta-radio'] ) ) checked( $racconti_sfide_stored_meta['meta-radio'][0], 'radio-two' ); ?>>
-                Rigetta
-            </label>
-        </div>
-    </p>
-    <p>
 
-        <span class="racconti-sfiderow-title">A cura degli IRO</span>
+    $sfida_corrente = get_post_meta($post->ID,'sfida_corrente',true);
+
+    if ( !empty($sfida_corrente) ) {
+
+    ?>
+
+    <p>
+        <span class="racconti-sfiderow-title">
+            <div class="racconti-sfiderow-content">
+                <label for="meta-visibilita-bacheca">
+                    Codice sfida : <?php echo $sfida_corrente; ?>
+                </label>
+            </div>
+        </span>
+
+    </p>
+    
+    <?php
+    } else {
+        update_post_meta( $post->ID, 'sfida_corrente', $sfida_corrente);
+    }
+    if ( current_user_can('promuovi_sfide_review') ) {
+    ?>
+
+    <p>
+        <span class="racconti-sfiderow-title">Visibilita su bacheca e/g</span>
         <div class="racconti-sfiderow-content">
-            <label for="meta-checkbox">
-                <input type="checkbox" name="meta-checkbox" id="meta-checkbox" value="yes" <?php if ( isset ( $racconti_sfide_stored_meta['meta-checkbox'] ) ) checked( $racconti_sfide_stored_meta['meta-checkbox'][0], 'yes' ); ?> />
+            <label for="meta-visibilita-bacheca">
+                <input type="checkbox" name="meta-visibilita-bacheca" id="meta-visibilita-bacheca" value="yes" <?php if ( isset ( $racconti_sfide_stored_meta['meta-visibilita-bacheca'] ) ) checked( $racconti_sfide_stored_meta['meta-visibilita-bacheca'][0], 'yes' ); ?> />
                 Promuovi
             </label>
         </div>
     </p>
 
     <?php
+
+    }
 }
 
 /**
  * Saves the custom meta input
  */
 function racconti_sfide_meta_save( $post_id ) {
- 
+
     // Checks save status
     $is_autosave = wp_is_post_autosave( $post_id );
     $is_revision = wp_is_post_revision( $post_id );
@@ -591,29 +621,29 @@ function racconti_sfide_meta_save( $post_id ) {
     }
  
     // Checks for input and saves
-    if( isset( $_POST[ 'meta-checkbox' ] ) ) {
-        update_post_meta( $post_id, 'meta-checkbox', 'yes' );
+    if( isset( $_POST[ 'meta-visibilita-bacheca' ] ) ) {
+        update_post_meta( $post_id, 'meta-visibilita-bacheca', 'yes' );
     } else {
-        update_post_meta( $post_id, 'meta-checkbox', '' );
+        update_post_meta( $post_id, 'meta-visibilita-bacheca', '' );
     }
      
-    // Checks for input and saves if needed
-    if( isset( $_POST[ 'meta-radio' ] ) ) {
-        update_post_meta( $post_id, 'meta-radio', $_POST[ 'meta-radio' ] );
-    }
+//    // Checks for input and saves if needed
+//    if( isset( $_POST[ 'meta-radio' ] ) ) {
+//        update_post_meta( $post_id, 'meta-radio', $_POST[ 'meta-radio' ] );
+//    }
  
 }
-add_action( 'save_post', 'racconti_sfide_meta_save' );
+add_action( 'save_post_sfida_review', 'racconti_sfide_meta_save' );
 
-function ep_eventposts_save_meta( $post_id, $post ) {
+function stida_event_save_meta( $post_id, $post ) {
 
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
         return;
 
-    if ( !isset( $_POST['ep_eventposts_nonce'] ) )
+    if ( !isset( $_POST['stida_event_nonce'] ) )
         return;
 
-    if ( !wp_verify_nonce( $_POST['ep_eventposts_nonce'], plugin_basename( __FILE__ ) ) )
+    if ( !wp_verify_nonce( $_POST['stida_event_nonce'], plugin_basename( __FILE__ ) ) )
         return;
 
     // Is the user allowed to edit the post or page?
@@ -622,7 +652,15 @@ function ep_eventposts_save_meta( $post_id, $post ) {
 
     // OK, we're authenticated: we need to find and save the data
     // We'll put it into an array to make it easier to loop though
-    
+
+    if ( count(get_icons_for_sfida($post)) == 0 ) {
+        $events_meta['_validita'] = 'false';
+        _log('Sfida '.$post->ID.' non valida');
+        update_option('sfide_admin_errors', 'Sfida '.$post->ID.' non valida: non e\' stato scelta una categoria appropriata');
+    } else {
+        $events_meta['_validita'] = 'true';
+    }
+
     $metabox_ids = array( '_start', '_end' );
 
     foreach ($metabox_ids as $key ) {
@@ -657,14 +695,13 @@ function ep_eventposts_save_meta( $post_id, $post ) {
 
     // Save Locations Meta
     // $events_meta['_event_location'] = $_POST['_event_location'];   
- 
 
     // Add values of $events_meta as custom fields
 
     foreach ( $events_meta as $key => $value ) { // Cycle through the $events_meta array!
         if ( $post->post_type == 'revision' ) return; // Don't store custom data twice
         $value = implode( ',', (array)$value ); // If $value is an array, make it a CSV (unlikely)
-        if ( get_post_meta( $post->ID, $key, FALSE ) ) { // If the custom field already has a value
+        if ( get_post_meta( $post->ID, $key, false ) ) { // If the custom field already has a value
             update_post_meta( $post->ID, $key, $value );
         } else { // If the custom field doesn't have a value
             add_post_meta( $post->ID, $key, $value );
@@ -674,8 +711,17 @@ function ep_eventposts_save_meta( $post_id, $post ) {
 
 }
 
-add_action( 'save_post', 'ep_eventposts_save_meta', 1, 2 );
+add_action( 'save_post_sfida_event', 'stida_event_save_meta', 1, 2 );
 
+
+//function save_post_sfida_event($post_id,$post) {
+//
+//    print_r($post);
+//    exit;
+//
+//}
+//
+//add_action('save_post_sfida_event', 'save_post_sfida_event', 1, 2);
 
 function add_new_sfida_event_columns($gallery_columns) {
     
@@ -685,6 +731,7 @@ function add_new_sfida_event_columns($gallery_columns) {
     $new_columns['start_time_event'] = 'Inizio Evento';
     $new_columns['end_time_event'] = 'Fine Evento';
     $new_columns['category_event'] = 'Categoria';
+    $new_columns['validita_event'] = 'Validita';
     // $new_columns['date'] = 'Published';
  
     return $new_columns;
@@ -749,6 +796,14 @@ function manage_gallery_columns($column_name, $id) {
             }
             echo $parent.' ['.substr($elenco, 1).']';
             break;
+        case 'validita_event':
+
+            if ( check_validita_sfida( $id ) ) {
+                echo 'valido';
+            } else {
+                echo 'non valida';
+            }
+            break;
     // case 'id':
     //     echo $id;
     //         break;
@@ -791,7 +846,6 @@ function sfide_disponibili_dashboard_widget(){
 
     $posts_array = get_posts($args);
 
-    $c = 0;
     $printout = array();
 
     foreach ($posts_array as $k => $p) {
@@ -799,24 +853,24 @@ function sfide_disponibili_dashboard_widget(){
         if(!is_sfida_alive($p)) { continue; }
         if(!is_sfida_for_me($p)) { continue; }
 
-        $user_r = get_user_meta('regione');
-        $user_z = get_user_meta('zona');
-
         $icons = get_icons_for_sfida($p);
 
-        $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
-        $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
-        foreach ($icons as $icon) {
-            $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
-            . 'title="'. $icon['caption'] . '"'
-            .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
+        if ( check_validita_sfida($p) ) {
+
+            $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
+            $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
+            foreach ($icons as $icon) {
+                $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
+                . 'title="'. $icon['caption'] . '"'
+                .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
+            }
+            $sfida_html = $sfida_html . "</td>";
+            array_push($printout, $sfida_html);
+
         }
-        $sfida_html = $sfida_html . "</td>";
-        array_push($printout, $sfida_html);
-        $c++;
     }
 
-    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
+    echo "<span style=\"text-align:right;\">Hai ". count($printout) ." sfide disponibili</span><br>";
     echo "<table id=\"sfide-disponibili\">";
     echo "<thead><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><thead>\n";
     echo "<tbody>\n";
@@ -939,6 +993,7 @@ function rtd_sfide_load_widget() {
 }
 
 add_action( 'widgets_init', 'rtd_sfide_load_widget' );
+
 
 
 // /**
