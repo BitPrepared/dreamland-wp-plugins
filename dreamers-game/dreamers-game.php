@@ -29,6 +29,7 @@ function rtd_uninstall(){
 }
 register_deactivation_hook(__FILE__,'rtd_uninstall');
 
+
 //DASHBOARD
 add_action( 'wp_dashboard_setup', 'remove_wp_dashboard_widgets' );
 function remove_wp_dashboard_widgets() {
@@ -74,6 +75,7 @@ function remove_wp_dashboard_widgets() {
 
 }
 
+
 //MESSAGING ADMIN ALERT
 function showMessage($message, $errormsg = false)
 {
@@ -114,11 +116,6 @@ function dreamer_session() {
 
 
 //EMAIL MULTIPLE x SINGOLO SITO
-/**
- * [skip_email_exist description]
- * @param  [type] $user_email [description]
- * @return [type]             [description]
- */
 function skip_email_exist($user_email){
 
     define( 'WP_IMPORTING', 'SKIP_EMAIL_EXIST' );
@@ -127,6 +124,20 @@ function skip_email_exist($user_email){
 // This hook should run before user email validation
 add_filter( 'pre_user_email', 'skip_email_exist');
 
+
+//REDIRECT DOPO IL LOGIN
+function send_to_dashboard($user_login, $user){
+    if ( !current_user_can('view_sfide_review') ) {
+        _log('redirect to site '.get_site_url());
+        wp_redirect(get_site_url());
+        exit;
+    } else {
+        _log('redirect to admin url '.get_admin_url());
+        wp_redirect(get_admin_url());
+        exit;
+    }
+}
+add_action('wp_login', 'send_to_dashboard', 10, 2);
 
 
 //LOGGING
