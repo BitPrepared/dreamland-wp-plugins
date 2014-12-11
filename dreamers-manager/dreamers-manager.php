@@ -58,7 +58,7 @@ function json_pre_insert_user_dreamers($user , $data) {
 }
 add_filter('json_pre_insert_user','json_pre_insert_user_dreamers', 10 , 2);
 
-function user_notification_password($user_id,$plaintext_pass) {
+function user_notification_password($user_id,$plaintext_pass,$ruolo) {
     $user = get_userdata( $user_id );
 
     $message  = "Benvenuti in Dreamland \r\n\r\n";
@@ -68,6 +68,8 @@ function user_notification_password($user_id,$plaintext_pass) {
     $message .= sprintf(__('Authorization code : %s'), 'dr3aml4and') . "\r\n";
     $message .= 'il campo "Yubikey OTP" va lasciato vuoto' . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
+    if ( strcmp($ruolo, 'eg') == 0 ) $message .= 'Per poter usare il pannello dovrai aspettare che il tuo capo reparto autorizzi la tua iscrizione' . "\r\n";
+
 
     if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
         wp_mail(get_option('admin_email'), 'New User Registration', $message);
@@ -93,13 +95,15 @@ function inserted_user_dreamers($user , $data, $update) {
                 }
             }
 
-            if ( strcmp($data['meta']['ruolocensimento'], 'cr') == 0 ) {
+            $ruolo = $data['meta']['ruolocensimento'];
+
+            if ( strcmp($ruolo, 'cr') == 0 ) {
                 $u = new WP_User( $user_id );
                 $u->remove_role('subscriber');
                 $u->add_role('capo_reparto');
             }
 
-            if ( strcmp($data['meta']['ruolocensimento'], 'rr') == 0 ) {
+            if ( strcmp($ruolo, 'rr') == 0 ) {
                 $u = new WP_User( $user_id );
                 $u->remove_role('subscriber');
                 $u->add_role( 'referente_regionale' );
@@ -107,7 +111,7 @@ function inserted_user_dreamers($user , $data, $update) {
         }
         $random_password = wp_generate_password( 12, false );
         wp_set_password( $random_password, $user_id );
-        user_notification_password($user_id,$random_password);
+        user_notification_password($user_id,$random_password,$ruolo);
         _log('generato '.$random_password);
     }
 }
