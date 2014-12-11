@@ -127,15 +127,22 @@ add_filter( 'pre_user_email', 'skip_email_exist');
 
 //REDIRECT DOPO IL LOGIN
 function send_to_dashboard($user_login, $user){
-    if ( !current_user_can('view_sfide_review') ) {
-        _log('redirect to site '.get_site_url());
-        wp_redirect(get_site_url());
+
+    if ( current_user_can('manage_eg') ) {
+        _log('redirect to admin url '.get_admin_url());
+        wp_redirect(get_admin_url().'admin.php?page=dreamers');
         exit;
-    } else {
+    }
+
+    if ( current_user_can('view_sfide_review') ) {
         _log('redirect to admin url '.get_admin_url());
         wp_redirect(get_admin_url());
         exit;
     }
+
+    _log('redirect to site '.get_site_url());
+    wp_redirect(get_site_url());
+    exit;
 }
 add_action('wp_login', 'send_to_dashboard', 10, 2);
 
