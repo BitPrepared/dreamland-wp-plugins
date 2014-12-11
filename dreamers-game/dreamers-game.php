@@ -19,7 +19,17 @@ function rtd_install(){
     add_role( 'iabr', 'Incaricato alle branche di regione', array( "read" => true) );
     add_role( 'referente_regionale', 'Referente Sfide Regionali', array( "read" => true) );
 }
+register_activation_hook(__FILE__,'rtd_install');
+function rtd_uninstall(){
+    remove_role('utente_eg');
+    remove_role('capo_reparto');
+    remove_role('iabz');
+    remove_role('iabr');
+    remove_role('referente_regionale');
+}
+register_deactivation_hook(__FILE__,'rtd_uninstall');
 
+//DASHBOARD
 add_action( 'wp_dashboard_setup', 'remove_wp_dashboard_widgets' );
 function remove_wp_dashboard_widgets() {
   
@@ -64,6 +74,7 @@ function remove_wp_dashboard_widgets() {
 
 }
 
+//MESSAGING ADMIN ALERT
 function showMessage($message, $errormsg = false)
 {
     if ($errormsg) {
@@ -73,8 +84,7 @@ function showMessage($message, $errormsg = false)
         echo '<div id="message" class="updated fade">';
     }
     echo "<p><strong>$message</strong></p></div>";
-} 
- 
+}
 function showAdminMessages()
 {
 
@@ -91,9 +101,10 @@ function showAdminMessages()
         showMessage($testo, true);
     }
 }
-
 add_action('admin_notices', 'showAdminMessages');
 
+
+//SESSION SETUP
 add_action('init', 'dreamer_session', 1);
 function dreamer_session() {
     if(!session_id()) {
@@ -101,18 +112,24 @@ function dreamer_session() {
     }
 }
 
-function rtd_uninstall(){
-    remove_role('utente_eg');
-    remove_role('capo_reparto');
-    remove_role('iabz');
-    remove_role('iabr');
-    remove_role('referente_regionale');
+
+//EMAIL MULTIPLE x SINGOLO SITO
+/**
+ * [skip_email_exist description]
+ * @param  [type] $user_email [description]
+ * @return [type]             [description]
+ */
+function skip_email_exist($user_email){
+
+    define( 'WP_IMPORTING', 'SKIP_EMAIL_EXIST' );
+    return $user_email;
 }
+// This hook should run before user email validation
+add_filter( 'pre_user_email', 'skip_email_exist');
 
-register_activation_hook(__FILE__,'rtd_install');
 
-register_deactivation_hook(__FILE__,'rtd_uninstall');
 
+//LOGGING
 if(!function_exists('_log')){
   function _log( $message ) {
     if( WP_DEBUG === true ){
@@ -124,3 +141,4 @@ if(!function_exists('_log')){
     }
   }
 }
+
