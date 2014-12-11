@@ -193,7 +193,7 @@ function gestione_ruoli_menu_page(){
             $myUserId = get_current_user_id();
             $all_meta_mime = get_user_meta( $myUserId );
 
-            if (  strcasecmp($all_meta_mime['group'], $all_meta_for_user['group']) != 0 ) {
+            if (  strcasecmp($all_meta_mime['group'][0], $all_meta_for_user['group'][0]) != 0 ) {
                 $skip = true;
             }
 

@@ -128,7 +128,7 @@ add_filter( 'pre_user_email', 'skip_email_exist');
 //REDIRECT DOPO IL LOGIN
 function send_to_dashboard($user_login, $user){
 
-    if ( current_user_can('manage_eg') ) {
+    if ( current_user_can('abilita_eg') ) {
         _log('redirect to admin url '.get_admin_url());
         wp_redirect(get_admin_url().'admin.php?page=dreamers');
         exit;
