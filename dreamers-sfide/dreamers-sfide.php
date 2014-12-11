@@ -755,6 +755,7 @@ add_filter('manage_edit-sfida_event_columns', 'add_new_sfida_event_columns');
 function sfida_event_column_register_sortable( $columns ) {
     $columns['start_time_event'] = 'Inizio Evento';
     $columns['end_time_event'] = 'Fine Evento';
+    $columns['regione'] = 'Regione';
 
     return $columns;
 }
@@ -771,7 +772,6 @@ function time_event_column_orderby( $vars ) {
  
     return $vars;
 }
-add_filter( 'request', 'time_event_column_orderby' );
 
  
 function manage_gallery_columns($column_name, $id) {
@@ -823,6 +823,11 @@ function manage_gallery_columns($column_name, $id) {
     //     $num_images = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $wpdb->posts WHERE post_parent = {$id};"));
     //     echo $num_images; 
     //     break;
+        case 'regione':
+            $r = get_post_meta($id,'_regione',true);
+            echo $r;//  get_nome_regione_by_code($r);
+            break;
+
     default:
         break;
     } // end switch

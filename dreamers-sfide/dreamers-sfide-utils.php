@@ -1,5 +1,11 @@
 <?php
 
+abstract class StatusIscrizione {
+    const Richiesta = 'iscrizione-richiesta';
+    const Autorizzata = 'iscrizione-autorizzata';
+    const Completata = 'iscrizione-completate';
+}
+
 function is_sfida_alive($p){
 
 	$per = array('_year', '_month', '_day', '_hour', '_minute');
@@ -58,8 +64,9 @@ function is_sfida_for_me($p, $debug=false){
 
 	$is_admitted = false;
 	foreach ($admitted_roles as $role) {
-		$is_admitted = $is_admitted || in_array($role, $admitted_roles);
+		$is_admitted = $is_admitted || in_array($role, $curr_user->roles);
 	}
+
 	if(!$is_admitted){
         _log('Permessi insufficienti per iscriversi');
 		return false;
@@ -101,7 +108,10 @@ function is_sfida_subscribed($p, $iscrizioni=False){
 		$iscrizioni = get_iscrizioni();
 	}
 
-	return $iscrizioni && in_array($post->ID, $iscrizioni);
+	if ($iscrizioni && in_array($post->ID, $iscrizioni)){
+        $status = get_iscrizione_status($p);
+        return $status == StatusIscrizione::Autorizzata;
+    }
 }
 
 function get_iscrizione_status($p){
@@ -187,3 +197,27 @@ function get_icons_for_sfida($p){
 
         return $icons;
 }
+
+/*
+	REDIRECT DOPO IL LOGIN
+*/
+/*
+function send_to_dashboard($user_login, $user){
+
+    foreach ($user->roles as $role) {
+        switch ($role) {
+            case 'subscriber':
+                wp_redirect(get_page_link(75));
+                break;
+            case 'capo_reparto':
+                wp_redirect(get_site_url() . "/admin.php?page=dreamers");
+            default:
+                break;
+        }
+    }
+
+	wp_redirect("http://google.com/");
+}
+
+add_action('wp_login', 'send_to_dashboard', 10, 2);
+*/
