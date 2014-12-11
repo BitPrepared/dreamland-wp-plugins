@@ -140,11 +140,22 @@ function send_to_dashboard($user_login, $user){
         exit;
     }
 
-    _log('redirect to site '.get_site_url());
-    wp_redirect(get_site_url());
-    exit;
 }
 add_action('wp_login', 'send_to_dashboard', 10, 2);
+
+// PULIZIA PROFILO
+function prefix_hide_personal_options() {
+    if (current_user_can('manage_options')) return false;
+    ?>
+    <script type="text/javascript">
+        jQuery(document).ready(function( $ ){
+            $("#nickname,#first_name,#last_name,#display_name").parent().parent().remove();
+        });
+    </script>
+<?php
+}
+add_action('personal_options', 'prefix_hide_personal_options');
+remove_action( 'admin_color_scheme_picker', 'admin_color_scheme_picker' );
 
 
 //LOGGING
