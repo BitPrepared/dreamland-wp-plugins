@@ -153,53 +153,37 @@ function get_icons_for_sfida($p){
         // in particolare http://codex.wordpress.org/Function_Reference/plugin_dir_url
         $wp_plugin_url = plugin_dir_url( __FILE__ );
 
+        $all_icons = array(
+            "Avventura" => array(
+                'src' => $wp_plugin_url.'images/5.png',
+                'caption' => "Avventura"
+            ),
+            "Originalita" => array(
+                'src' => $wp_plugin_url.'images/3.png',
+                'caption' => "Originalita"
+            ),
+            "Grade Impresa" => array(
+                'src' => $wp_plugin_url.'images/1.png',
+                'caption' => "Grade Impresa"
+            ),
+            "Traccia nel Mondo" => array(
+                'src' => $wp_plugin_url.'images/2.png',
+                'caption' => "Traccia nel Mondo"
+            ),
+            "Altro" => array(
+                'src' => $wp_plugin_url.'images/6.png',
+                'caption' => "Altro"
+            )
+        );
+
         if($terms && ! is_wp_error($terms)){
             foreach ($terms as $term_key => $term_value) {
-                switch ($term_value->name) {
-                    case 'Avventura':
-                        array_push($icons, array(
-                            'src' => $wp_plugin_url.'images/5.png',
-                            'caption' => $term_value->name
-                            )
-                        );                        
-                        break;
-                    case 'Originalita':
-                        array_push($icons, array(
-                            'src' => $wp_plugin_url.'images/3.png',
-                            'caption' => $term_value->name
-                            )
-                        );
-                        
-                        break;
-                    case 'Grande Impresa':
-                        array_push($icons, array(
-                            'src' => $wp_plugin_url.'images/1.png',
-                            'caption' => $term_value->name
-                            )
-                        );
-                        
-                        break;
-                    case 'Traccia nel Mondo':
-                        array_push($icons, array(
-                            'src' => $wp_plugin_url.'images/2.png',
-                            'caption' => $term_value->name
-                            )
-                        );
-                        break;        
-                    case 'Grande Sfida':
-                    case 'Sfida Speciale':
-                        break;
-                    default:
-                        // var_dump($term_value);
-                        if($has_shield)
-                            break;
-                        $has_shield = True;
-                        array_push($icons, array(
-                            'src' => $wp_plugin_url.'images/6.png',
-                            'caption' => 'Altro'
-                            )
-                        );
-                        break;
+                if ($term_value->name == "Grande Sfida") {
+                    $icons = array_merge($icons, $all_icons);
+                } else {
+                    if(isset($all_icons[$term_value->name])){
+                        $icons[$term_value->name] = $all_icons[$term_value->name];
+                    }
                 }
             }
         }
