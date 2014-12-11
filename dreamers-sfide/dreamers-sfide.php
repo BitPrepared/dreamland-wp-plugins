@@ -738,7 +738,8 @@ function add_new_sfida_event_columns($gallery_columns) {
     $new_columns['start_time_event'] = 'Inizio Evento';
     $new_columns['end_time_event'] = 'Fine Evento';
     $new_columns['category_event'] = 'Categoria';
-    $new_columns['validita_event'] = 'Validita';
+    $new_columns['region'] = 'Regione';
+//    $new_columns['validita_event'] = 'Validita';
     // $new_columns['date'] = 'Published';
  
     return $new_columns;
@@ -802,6 +803,9 @@ function manage_gallery_columns($column_name, $id) {
                 }
             }
             echo $parent.' ['.substr($elenco, 1).']';
+            break;
+        case 'region':
+            echo get_post_meta($id,'_regione',true);
             break;
         case 'validita_event':
 

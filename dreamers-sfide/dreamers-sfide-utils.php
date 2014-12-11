@@ -48,6 +48,7 @@ function get_limit_sfida($p, $regioni){
 function is_sfida_for_me($p, $debug=false){
 
 	if(!is_user_logged_in()){
+        _log('utente non autenticato');
 		return false;
 	}
 
@@ -60,20 +61,19 @@ function is_sfida_for_me($p, $debug=false){
 		$is_admitted = $is_admitted || in_array($role, $admitted_roles);
 	}
 	if(!$is_admitted){
+        _log('Permessi insufficienti per iscriversi');
 		return false;
 	}
 
 	$user = array();
 
-	$u_r = get_user_meta($curr_user->ID,'region');
+	$u_r = get_user_meta($curr_user->ID,'regionShort');
 	$u_z = get_user_meta($curr_user->ID ,'zone');
 
 	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
 	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";
 
-	if($debug){
-		echo "<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'] . " -->";
-	}
+    _log("<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'] . " -->");
 
 	$sfida = array();
 
@@ -83,13 +83,12 @@ function is_sfida_for_me($p, $debug=false){
 	$sfida['region'] = ($s_r) ? reset($s_r) : "Nessuna";
 	$sfida['zone'] = ($s_z) ? reset($s_z) : "Nessuna" ;
 
-	if($debug){
-		echo "<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->";
-	}
+    _log("<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->");
 	
 	return $sfida['region'] == "CM_NAZ" || // Se la sfida è nazionale oppure
 			( $sfida['region'] == $user['region'] && // Se la regione è la stessa
 				($sfida['zone'] == "-- TUTTE LE ZONE --" || $sfida['zone'] == $user['zone']));
+
 }
 
 function get_iscrizioni(){
@@ -125,8 +124,6 @@ function check_validita_sfida($p) {
     $bool = filter_var($validita, FILTER_VALIDATE_BOOLEAN);
     return $bool;
 }
-
-
 
 function get_icons_for_sfida($p){
 	    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
