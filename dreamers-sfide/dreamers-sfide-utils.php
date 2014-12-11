@@ -1,9 +1,18 @@
 <?php
 
 abstract class StatusIscrizione {
+
+    /* L'utente ha richiesto l'iscrizione */
     const Richiesta = 'iscrizione-richiesta';
+
+    /* La sfida è stata autorizzata dal capo reparto */
     const Autorizzata = 'iscrizione-autorizzata';
+    
+    /* La sfida è stata portata a termine e caricato il resoconto*/
     const Completata = 'iscrizione-completate';
+
+    /* Disiscrizione da parte dell'utente */
+    const Annullata = 'iscrizione-annullata';
 }
 
 function is_sfida_alive($p){
