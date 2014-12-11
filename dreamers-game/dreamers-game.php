@@ -128,13 +128,13 @@ add_filter( 'pre_user_email', 'skip_email_exist');
 //REDIRECT DOPO IL LOGIN
 function send_to_dashboard($user_login, $user){
 
-    if ( current_user_can('abilita_eg') ) {
+    if ( user_can($user,'abilita_eg') ) {
         _log('redirect to admin url '.get_admin_url());
         wp_redirect(get_admin_url().'admin.php?page=dreamers');
         exit;
     }
 
-    if ( current_user_can('view_sfide_review') ) {
+    if ( user_can($user,'view_sfide_review') ) {
         _log('redirect to admin url '.get_admin_url());
         wp_redirect(get_admin_url());
         exit;
