@@ -123,6 +123,20 @@ function is_sfida_subscribed($p, $iscrizioni=False){
     }
 }
 
+function is_sfida_speciale() {
+    
+    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
+    if($terms && ! is_wp_error($terms)){
+        foreach ($terms as $term_key => $term_value) {
+            if ($term_value->name == "Sfida Speciale") {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function get_iscrizione_status($p){
 	
 	$q = get_user_meta( get_current_user_id(),'_iscrizione_' . $p->ID);
