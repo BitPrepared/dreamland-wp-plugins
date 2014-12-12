@@ -123,7 +123,7 @@ function is_sfida_subscribed($p, $iscrizioni=False){
     }
 }
 
-function is_sfida_speciale() {
+function is_sfida_speciale($p) {
     
     $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
     if($terms && ! is_wp_error($terms)){
