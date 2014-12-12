@@ -223,6 +223,16 @@ function gestione_ruoli_menu_page(){
                 echo '<input type="submit" value="Autorizza E/G" />';
                 echo '</form>';
             }
+
+            if ( current_user_can('delete_users') )
+            {
+                echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
+                echo '<input type="hidden" name="action" value="rtddeleteeg" />';
+                echo '<input type="hidden" name="selecteduser" value="'.$id.'" />';
+                echo '<input type="submit" value="Delete E/G" />';
+                echo '</form>';
+            }
+
             echo '</td>';
 
         }
@@ -292,8 +302,21 @@ function gestione_ruoli_menu_page(){
         if ( current_user_can('abilita_eg') || current_user_can('manage_eg') )
         {
             echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
+            echo '<input type="hidden" name="action" value="rtdcongelaeg" />';
+            echo '<input type="hidden" name="selecteduser" value="'.$id.'" />';
+            echo '<input type="submit" value="Congela E/G" />';
             echo '</form>';
         }
+
+        if ( current_user_can('delete_users') )
+        {
+            echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
+            echo '<input type="hidden" name="action" value="rtddeleteeg" />';
+            echo '<input type="hidden" name="selecteduser" value="'.$id.'" />';
+            echo '<input type="submit" value="Delete E/G" />';
+            echo '</form>';
+        }
+
         echo '</td>';
 
     }
@@ -307,8 +330,6 @@ function gestione_ruoli_menu_page(){
 }
 
 // @see http://wordpress.stackexchange.com/questions/10500/how-do-i-best-handle-custom-plugin-page-actions
-
-add_action( 'admin_action_rtdautorizzaeg', 'rtdautorizzaeg_admin_action' );
 
 function rtdautorizzaeg_admin_action()
 {
@@ -336,6 +357,65 @@ function rtdautorizzaeg_admin_action()
     exit();
 
 }
+
+ 
+add_action( 'admin_action_rtdautorizzaeg', 'rtdautorizzaeg_admin_action' );
+
+function rtdcongelaeg_admin_action()
+{
+
+    $can = current_user_can('abilita_eg') || current_user_can('manage_eg');
+
+    if ( isset($_POST['selecteduser']) && $can ) {
+
+        // Do your stuff here
+        $user_id = $_POST['selecteduser'];
+        
+        $u = new WP_User( $user_id );
+
+        // Remove role
+        $u->remove_role( 'utente_eg' );
+
+        // Add new roles
+        $u->add_role( 'subscriber' );
+
+    } else {
+        _log('invalid request rtdcongelaeg_admin_action, missing selecteduser or invalid permission '.var_export($can, true));
+    }
+
+    wp_redirect( $_SERVER['HTTP_REFERER'] );
+    exit();
+
+}
+
+add_action( 'admin_action_rtdcongelaeg', 'rtdcongelaeg_admin_action' );
+
+function rtddeleteeg_admin_action()
+{
+
+    if ( isset($_POST['selecteduser']) && current_user_can('delete_users') ) {
+
+        // Do your stuff here
+        $user_id = $_POST['selecteduser'];
+        
+        $u = new WP_User( $user_id );
+
+        $postMigrate = get_current_user_id();
+
+        wp_delete_user($user_id,$postMigrate); 
+
+        _log('rimosso utente : '.$user_id.' migrato post sull\' utente : '.$postMigrate);
+
+    } else {
+        _log('invalid request rtddeleteeg_admin_action, missing selecteduser or invalid permission '.var_export($can, true));
+    }
+
+    wp_redirect( $_SERVER['HTTP_REFERER'] );
+    exit();
+
+}
+
+add_action( 'admin_action_rtddeleteeg', 'rtddeleteeg_admin_action' );
 
 function gestione_ruoli_menu() {
 
