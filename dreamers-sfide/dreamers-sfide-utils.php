@@ -176,7 +176,7 @@ function get_icons_for_sfida($p){
                 'src' => $wp_plugin_url.'images/3.png',
                 'caption' => "Originalita"
             ),
-            "Grade Impresa" => array(
+            "Grande Impresa" => array(
                 'src' => $wp_plugin_url.'images/1.png',
                 'caption' => "Grade Impresa"
             ),
@@ -193,7 +193,9 @@ function get_icons_for_sfida($p){
         if($terms && ! is_wp_error($terms)){
             foreach ($terms as $term_key => $term_value) {
                 if ($term_value->name == "Grande Sfida") {
-                    $icons = array_merge($icons, $all_icons);
+                    foreach(array("Avventura", "Originalita", "Grande Impresa", "Traccia nel Mondo") as $t){
+                        $icons[$t] = $all_icons[$t];
+                    }
                 } else {
                     if(isset($all_icons[$term_value->name])){
                         $icons[$term_value->name] = $all_icons[$term_value->name];
