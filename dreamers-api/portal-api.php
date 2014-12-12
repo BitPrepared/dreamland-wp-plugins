@@ -14,9 +14,9 @@ class Portal_API
             array(array($this, 'get_profilo'), WP_JSON_Server::READABLE)
         );
 
-        $routes['/portal/pk'] = array(
-            array(array($this, 'create_profilo'), WP_JSON_Server::READABLE)
-        );
+//        $routes['/portal/pk'] = array(
+//            array(array($this, 'create_profilo'), WP_JSON_Server::READABLE)
+//        );
 
         $routes['/portal/cs'] = array(
             array(array($this, 'complete_sfida'), WP_JSON_Server::READABLE)
@@ -60,60 +60,60 @@ class Portal_API
         
     }
 
-    public function create_profilo($filter = array(), $context = 'view', $type = null, $page = 1)
-    {
-        $res = array();
-        if ( isset($_SESSION['portal']) ) {
-            if ( isset($_SESSION['portal']['request']) ) {
-                $request = $_SESSION['portal']['request'];
-
-                $userdata = array(
-                    'user_login'  =>  $request['username'],
-                    'user_pass'   =>  $request['password'],
-                    'first_name'   =>  $request['first_name'],
-                    'last_name'   =>  $request['last_name'],
-                    'user_email'   =>  $request['email'],
-                    'nickname'   =>  $request['nickname']
-                );
-
-                $user_id = wp_insert_user( $userdata ) ;
-
-                if ( is_wp_error($user_id) ) {
-
-                    _log('errore creazione utente '.$user_id->get_error_message());
-
-                    unset($_SESSION['portal']['request']);
-                    $url_base = '/portal/#/home/reg/ko'; // /portal/#/home/reg/ko?msg=oo
-                    $query = "Contattare%20l%27assistenza".'%20a%20iscrizioni.rtd%40agesci.it%20:%20'.urlencode($user_id->get_error_message(). '');
-                    wp_redirect("$url_base?msg=$query");
-
-                    exit;
-
-                } else {
-
-                    _log('Creato '.$user_id);
-
-                    $user = new WP_User( $user_id );
-
-                    if ( false === $user ) {
-                        $res['error'] = 'User non trovato..';
-                    } else {
-                        inserted_user_dreamers($user , $request, false);
-                        unset($_SESSION['portal']['request']);
-                        $url_base = '/portal/#/home/reg/ok';
-                        $query = 'Registrazione%20completata%20con%20successo.%20Riceverai%20una%20mail%20con%20le%20nuove%20credenziali.';
-                        wp_redirect("$url_base?msg=$query");
-                        exit;
-                    }
-
-                }
-            }
-        } else {
-            $res['error'] = 'utente non valido';
-        }
-
-        return $res;
-    }
+//    public function create_profilo($filter = array(), $context = 'view', $type = null, $page = 1)
+//    {
+//        $res = array();
+//        if ( isset($_SESSION['portal']) ) {
+//            if ( isset($_SESSION['portal']['request']) ) {
+//                $request = $_SESSION['portal']['request'];
+//
+//                $userdata = array(
+//                    'user_login'  =>  $request['username'],
+//                    'user_pass'   =>  $request['password'],
+//                    'first_name'   =>  $request['first_name'],
+//                    'last_name'   =>  $request['last_name'],
+//                    'user_email'   =>  $request['email'],
+//                    'nickname'   =>  $request['nickname']
+//                );
+//
+//                $user_id = wp_insert_user( $userdata ) ;
+//
+//                if ( is_wp_error($user_id) ) {
+//
+//                    _log('errore creazione utente '.$user_id->get_error_message());
+//
+//                    unset($_SESSION['portal']['request']);
+//                    $url_base = '/portal/#/home/reg/ko'; // /portal/#/home/reg/ko?msg=oo
+//                    $query = "Contattare%20l%27assistenza".'%20a%20iscrizioni.rtd%40agesci.it%20:%20'.urlencode($user_id->get_error_message(). '');
+//                    wp_redirect("$url_base?msg=$query");
+//
+//                    exit;
+//
+//                } else {
+//
+//                    _log('Creato '.$user_id);
+//
+//                    $user = new WP_User( $user_id );
+//
+//                    if ( false === $user ) {
+//                        $res['error'] = 'User non trovato..';
+//                    } else {
+//                        inserted_user_dreamers($user , $request, false);
+//                        unset($_SESSION['portal']['request']);
+//                        $url_base = '/portal/#/home/reg/ok';
+//                        $query = 'Registrazione%20completata%20con%20successo.%20Riceverai%20una%20mail%20con%20le%20nuove%20credenziali.';
+//                        wp_redirect("$url_base?msg=$query");
+//                        exit;
+//                    }
+//
+//                }
+//            }
+//        } else {
+//            $res['error'] = 'utente non valido';
+//        }
+//
+//        return $res;
+//    }
 
     public function get_profilo($filter = array(), $context = 'view', $type = null, $page = 1)
     {

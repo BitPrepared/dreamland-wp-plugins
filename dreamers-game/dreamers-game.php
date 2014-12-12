@@ -143,6 +143,7 @@ function send_to_dashboard($user_login, $user){
 }
 add_action('wp_login', 'send_to_dashboard', 10, 2);
 
+
 // PULIZIA PROFILO
 function prefix_hide_personal_options() {
     if (current_user_can('manage_options')) return false;
