@@ -18,9 +18,9 @@ class Portal_API
 //            array(array($this, 'create_profilo'), WP_JSON_Server::READABLE)
 //        );
 
-        $routes['/portal/cs'] = array(
-            array(array($this, 'complete_sfida'), WP_JSON_Server::READABLE)
-        );
+//        $routes['/portal/cs'] = array(
+//            array(array($this, 'complete_sfida'), WP_JSON_Server::READABLE)
+//        );
 
         // $routes['/portal/ara/(?P<id>\d+)'] = array(
         //   array( array( $this, 'get_post'), WP_JSON_Server::READABLE ),
@@ -31,34 +31,34 @@ class Portal_API
         return $routes;
     }
 
-    public function complete_sfida($filter = array(), $context = 'view', $type = null, $page = 1)
-    {
-        $res = array();
-        // is_user_logged_in() && // SCOPRIRE PERCHE' NON VA
-        if ( isset($_SESSION['portal']) ) {
-            if ( isset($_SESSION['portal']['request']) ) {
-                $sfidaid = $_SESSION['portal']['request']['sfidaid'];
-                
-                $wordpress = $_SESSION['wordpress'];
-                $user_id = $wordpress['user_id'];
-
-                // $user = wp_get_current_user();
-                // $user_id = $user->ID;
-                
-                add_user_meta($user_id, '_iscrizioni', $sfidaid, false); //possibile array
-
-                _log('iscrizione completata per '.$user_id.' su sfida '.$sfidaid);
-                unset($_SESSION['portal']['request']);
-                $url_base = '/portal/#/home/reg/ok';
-                $query = 'Iscrizione%20alla%20sfida%20completata%20con%20successo.';
-                wp_redirect("$url_base?msg=$query");
-                exit;
-            }
-        } else {
-            $res['error'] = 'utente non valido';
-        }   
-        
-    }
+//    public function complete_sfida($filter = array(), $context = 'view', $type = null, $page = 1)
+//    {
+//        $res = array();
+//        // is_user_logged_in() && // SCOPRIRE PERCHE' NON VA
+//        if ( isset($_SESSION['portal']) ) {
+//            if ( isset($_SESSION['portal']['request']) ) {
+//                $sfidaid = $_SESSION['portal']['request']['sfidaid'];
+//
+//                $wordpress = $_SESSION['wordpress'];
+//                $user_id = $wordpress['user_id'];
+//
+//                // $user = wp_get_current_user();
+//                // $user_id = $user->ID;
+//
+//                add_user_meta($user_id, '_iscrizioni', $sfidaid, false); //possibile array
+//
+//                _log('iscrizione completata per '.$user_id.' su sfida '.$sfidaid);
+//                unset($_SESSION['portal']['request']);
+//                $url_base = '/portal/#/home/reg/ok';
+//                $query = 'Iscrizione%20alla%20sfida%20completata%20con%20successo.';
+//                wp_redirect("$url_base?msg=$query");
+//                exit;
+//            }
+//        } else {
+//            $res['error'] = 'utente non valido';
+//        }
+//
+//    }
 
 //    public function create_profilo($filter = array(), $context = 'view', $type = null, $page = 1)
 //    {
