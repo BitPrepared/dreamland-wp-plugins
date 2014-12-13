@@ -289,6 +289,17 @@ function gestione_ruoli_menu_page(){
         $all_meta_for_user = get_user_meta( $id );
         $user_info = get_userdata( $id );
 
+        if ( !current_user_can('manage_eg') ) {
+            
+            $myUserId = get_current_user_id();
+            $all_meta_mime = get_user_meta( $myUserId );
+
+            if (  strcasecmp($all_meta_mime['group'][0], $all_meta_for_user['group'][0]) != 0 ) {
+                continue;
+            }
+
+        }
+
         $ruolocensimento = $all_meta_for_user['ruolocensimento'];
 
         echo '<td class="column-columnname">'.implode(',',$ruolocensimento).'</td>';
