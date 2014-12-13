@@ -107,8 +107,16 @@ function is_sfida_for_me($p, $debug=false){
 
 }
 
-function get_iscrizioni(){
-	return get_user_meta(get_current_user_id(), '_iscrizioni');
+function get_iscrizioni($user_id = NULL){
+    if($user_id == NULL){
+        get_current_user_id();
+    } else {
+        $aux = get_userdata( $user_id );
+        if($aux == false){
+            return array();
+        }
+    }
+	return get_user_meta($user_id, '_iscrizioni');
 }
 
 function is_sfida_subscribed($p, $iscrizioni=False){
@@ -156,6 +164,11 @@ function check_validita_sfida($p) {
     $validita = get_post_meta($id,'_validita',true);
     $bool = filter_var($validita, FILTER_VALIDATE_BOOLEAN);
     return $bool;
+}
+
+function get_categorie_sfida(){
+       $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
+       return $terms;
 }
 
 function get_icons_for_sfida($p){
