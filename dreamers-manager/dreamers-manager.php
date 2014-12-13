@@ -315,7 +315,7 @@ function gestione_ruoli_menu_page(){
             echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
             echo '<input type="hidden" name="action" value="rtdcongelaeg" />';
             echo '<input type="hidden" name="selecteduser" value="'.$id.'" />';
-            echo '<input type="submit" value="Congela E/G" />';
+            echo '<input type="submit" value="Blocca E/G" />';
             echo '</form>';
         }
 
