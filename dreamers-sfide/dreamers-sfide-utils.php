@@ -89,7 +89,7 @@ function is_sfida_for_me($p, $debug=false){
 	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
 	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";
 
-    _log("<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'] . " -->");
+    // _log("<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'] . " -->");
 
 	$sfida = array();
 
@@ -99,7 +99,7 @@ function is_sfida_for_me($p, $debug=false){
 	$sfida['region'] = ($s_r) ? reset($s_r) : "Nessuna";
 	$sfida['zone'] = ($s_z) ? reset($s_z) : "Nessuna" ;
 
-    _log("<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->");
+    // _log("<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->");
 	
 	return $sfida['region'] == "CM_NAZ" || // Se la sfida è nazionale oppure
 			( $sfida['region'] == $user['region'] && // Se la regione è la stessa
@@ -109,14 +109,17 @@ function is_sfida_for_me($p, $debug=false){
 
 function get_iscrizioni($user_id = NULL){
     if($user_id == NULL){
-        get_current_user_id();
+        $user_id = get_current_user_id();
     } else {
         $aux = get_userdata( $user_id );
         if($aux == false){
             return array();
         }
     }
-	return get_user_meta($user_id, '_iscrizioni');
+    // _log("Ritorno iscrizioni per utente " . $user_id);
+    $res = get_user_meta($user_id, '_iscrizioni', False);
+    // _log($res);
+	return $res;
 }
 
 function is_sfida_subscribed($p, $iscrizioni=False){
@@ -125,10 +128,14 @@ function is_sfida_subscribed($p, $iscrizioni=False){
 		$iscrizioni = get_iscrizioni();
 	}
 
-	if ($iscrizioni && in_array($post->ID, $iscrizioni)){
+	if ($iscrizioni && in_array($p->ID, $iscrizioni)){
         $status = get_iscrizione_status($p);
-        return $status == StatusIscrizione::Autorizzata;
+        return true;
+        return 
+            $status == StatusIscrizione::Autorizzata ||
+            $status == StatusIscrizione::Richiesta;
     }
+    // _log("subscriber, Non entrato nell if");
 }
 
 function is_sfida_speciale($p) {
@@ -145,8 +152,12 @@ function is_sfida_speciale($p) {
     return false;
 }
 
-function get_iscrizione_status($p){
+function get_iscrizione_status($p, $user_id = NULL){
 	
+    if($user_id == NULL){
+        $user_id = get_current_user_id();
+    }
+
 	$q = get_user_meta( get_current_user_id(),'_iscrizione_' . $p->ID);
 	
 	return ($q) ? $q[0] : False;
@@ -166,7 +177,7 @@ function check_validita_sfida($p) {
     return $bool;
 }
 
-function get_categorie_sfida(){
+function get_categorie_sfida($p){
        $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
        return $terms;
 }
@@ -220,26 +231,11 @@ function get_icons_for_sfida($p){
         return $icons;
 }
 
-/*
-	REDIRECT DOPO IL LOGIN
-*/
-/*
-function send_to_dashboard($user_login, $user){
-
-    foreach ($user->roles as $role) {
-        switch ($role) {
-            case 'subscriber':
-                wp_redirect(get_page_link(75));
-                break;
-            case 'capo_reparto':
-                wp_redirect(get_site_url() . "/admin.php?page=dreamers");
-            default:
-                break;
+function get_icons_html($icons){
+    $res = "";
+    foreach ($icons as $icon) {
+            $res = $res . '<img alt="'. $icon['caption'] . '" '
+            . 'title="'. $icon['caption'] . '"'
+            .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
         }
-    }
-
-	wp_redirect("http://google.com/");
 }
-
-add_action('wp_login', 'send_to_dashboard', 10, 2);
-*/

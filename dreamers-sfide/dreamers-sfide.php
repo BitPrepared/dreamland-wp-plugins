@@ -12,6 +12,18 @@
 require_once('dreamers-sfide-utils.php');
 require_once("dreamers-sfide-widget.php");
 
+define("USER_META_KEY_REGIONE" , 'region');
+define("USER_META_KEY_REGIONE_DISPLAY" , 'regionDisplay');
+define("SFIDA_META_KEY_REGIONE" , '_regione');
+
+define("USER_META_KEY_ZONA" , 'zone');
+define("USER_META_KEY_ZONA_DISPLAY" , 'zoneDisplay');
+define("SFIDA_META_KEY_ZONA" , '_zona');
+
+define("USER_META_KEY_GROUP_DISPLAY" , 'groupDisplay');
+define("USER_META_KEY_GROUP" , 'group');
+
+
 function alert_regional_data_missing(){
     $screen = get_current_screen();
     global $regioni;
@@ -498,8 +510,8 @@ function sfide_event_limit($post, $args) {
     global $regioni;
     global $zone;
 
-    $curr_reg = get_post_meta($post->ID, '_regione', 1);
-    $curr_zon = get_post_meta($post->ID, '_zona', 1);
+    $curr_reg = get_post_meta($post->ID, SFIDA_META_KEY_REGIONE, 1);
+    $curr_zon = get_post_meta($post->ID, SFIDA_META_KEY_ZONA, 1);
 
     // Use nonce for verification
     wp_nonce_field( plugin_basename( __FILE__ ), 'stida_event_nonce' );
@@ -697,8 +709,8 @@ function stida_event_save_meta( $post_id, $post ) {
         
     }
     
-    $events_meta['_regione'] = $_POST['_regione'];
-    $events_meta['_zona'] = $_POST['_zona'];
+    $events_meta[SFIDA_META_KEY_REGIONE] = $_POST[SFIDA_META_KEY_REGIONE];
+    $events_meta[SFIDA_META_KEY_ZONA] = $_POST[SFIDA_META_KEY_ZONA];
 
     // Save Locations Meta
     // $events_meta['_event_location'] = $_POST['_event_location'];   
@@ -846,18 +858,15 @@ function sfide_disponibili_dashboard_widget(){
 
     $args = array(
         'posts_per_page'   => -1,
+        'numberposts'      => -1,
         'offset'           => 0,
         'orderby'          => 'post_date',
         'order'            => 'DESC',
-        'include'          => '',
-        'exclude'          => '',
-        'meta_key'         => '',
-        'meta_value'       => '',
+        // 'include'          => '',
+        // 'exclude'          => '',
         'post_type'        => 'sfida_event',
-        'post_mime_type'   => '',
-        'post_parent'      => '',
-        'post_status'      => 'publish',
-        'suppress_filters' => true
+        'post_status'      => 'publish'
+        // , 'suppress_filters' => true
     );
 
     $posts_array = get_posts($args);
@@ -909,10 +918,122 @@ function sfide_disponibili_dashboard_widget(){
 }
 
 function create_sfide_disponibili_widget(){
-    wp_add_dashboard_widget( 'sfide_disponibili', 'Sfide disponibili', 'sfide_disponibili_dashboard_widget', 'sfide_diponibili_filter' );
+    global $current_user;
+
+    // todo sostituire con una capability subscribe-sfide
+
+    $admitted_role = array('utente_eg', 'administrator', 'editor');
+    $roles = $current_user->roles;
+    foreach ($roles as $role) {
+        if(in_array($role, $admitted_role)){
+            wp_add_dashboard_widget( 'sfide_disponibili', 'Sfide disponibili', 'sfide_disponibili_dashboard_widget', 'sfide_diponibili_filter' );
+            return;
+        }
+    }
+
 }
 
 add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
+
+
+/* 
+        WIDGET SFIDE DEGLI EG CHE SEGUI
+*/
+function sfide_dei_miei_eg_dashboard_widget(){
+    global $current_user;
+    global $regioni;
+
+    $roles = $current_user->roles;
+
+    switch ($roles) {
+            case 'iabr':
+                $m_key = USER_META_KEY_REGIONE;
+                $msg = "della tua regione";
+                break;
+            case 'iabz':
+                $m_key = USER_META_KEY_ZONA;
+                $msg = "della tua zona";
+                break;
+            case 'capo_reparto':
+            default:
+                $m_key = USER_META_KEY_GROUP;
+                $msg = "del tuo reparto " . $current_user->last_name;
+                break;
+        }
+
+    $m_value = get_user_meta($current_user->ID, $m_key, 1);
+
+    if($m_value){
+        $users_args = array(
+            'meta_key' => $m_key,
+            'meta_value' => $m_value
+        );
+        $query_users = get_users($users_args);
+    } else {
+        $query_users = array();
+    }
+
+    $c = 0;
+    $printout = array();
+    
+    foreach ($query_users as $u) {
+        $iscrizioni_user = get_iscrizioni($u->ID);
+        $user_sfide = get_posts(array( 'posts__in' => $iscrizioni_user, 'post_type' => 'sfida_event'));
+        foreach ($user_sfide as $sfida) {
+            $line = "";
+            $line .= "<tr>";
+            $line .= "<td>" . $sfida->post_title . "</td>";
+            $line .= "<td>" . get_limit_sfida($sfida, $regioni) . "</td>";
+            $line .= "<td>" . get_icons_html(get_icons_for_sfida($sfida)) . "</td>";
+            $line .= "<td>" . get_iscrizione_status($sfida, $u->id). "</td>";
+            $line .= "<td>" . $u->last_name . "</td>";
+            $line .= "<td>" . $u->first_name . "</td>";
+            $line .= "</tr>";
+            array_push($printout, $line);
+            $c += 1;
+         } 
+    }
+
+    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sono iscritti gli eg ";
+    echo $msg . "</span><br>";
+    echo "<table id=\"miei-eg-sfide\">";
+    echo "<thead><tr><th>Sfida</th><th>Limitata a</th>";
+    echo "<th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><thead>\n";
+    echo "<tbody>\n";
+    foreach ($printout as $key => $value) {
+        echo $value;
+    }
+    echo "</tbody>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><tfoot>\n";
+    echo "</table>";
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($){
+        $('#miei-eg-sfide').DataTable();
+    });
+    </script>
+    <?php
+  
+}
+
+function create_sfide_miei_eg_widget(){
+
+    global $current_user;
+
+    // todo sostituire con capability follow_sfide
+    $admitted_roles = array('iabr', 'iabz', 'administrator', 'capo_reparto');
+    $roles = $current_user->roles;
+
+    foreach ($roles as $r) {
+        if(in_array($r, $admitted_roles)){ 
+            add_meta_box('sfide_dei_miei_eg', 'Le sfide degli EG che segui', 'sfide_dei_miei_eg_dashboard_widget', 'dashboard', 'normal', 'high');
+            return;
+        }
+    }
+}
+
+add_action('wp_dashboard_setup', 'create_mie_sfide_widget');
+
 
 /*
         WIDGET LE MIE SFIDE
@@ -921,33 +1042,28 @@ add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
 function mie_sfide_dashboard_widget(){
 
     global $regioni;
+    global $current_user;
 
-    $args = array(
-        'posts_per_page'   => -1,
-        'offset'           => 0,
-        'orderby'          => 'post_date',
-        'order'            => 'DESC',
-        'include'          => '',
-        'exclude'          => '',
-        'meta_key'         => '',
-        'meta_value'       => '',
-        'post_type'        => 'sfida_event',
-        'post_mime_type'   => '',
-        'post_parent'      => '',
-        'post_status'      => 'publish',
-        'suppress_filters' => true
-    );
+    $posts_array = array();
 
-    $posts_array = get_posts($args);
-
+/*    if(in_array('utente_eg', $current_user->roles)){
+        $iscrizioni = get_iscrizioni();
+        $args = array( 'post__in' => $iscrizioni, 'post_type' => 'sfida_event' );
+        $posts_array = WP_Query( $args );
+    }
+*/
+    $posts_array = get_posts(array('posts_per_page' => -1, 'numberposts' => -1, 'post_type' => 'sfida_event'));
+    // _log("Mie sfide: query: " . count($posts_array)  . " record");
     $c = 0;
     $printout = array();
 
+    $iscrizioni = get_iscrizioni();
+    // _log($iscrizioni);
     foreach ($posts_array as $k => $p) {
-        
+        // _log('mie sfide, post id : ' . $p->ID);
         // if(!is_sfida_alive($p)) { continue; }
         // if(!is_sfida_for_me($p)) { continue; }
-        if(!is_sfida_subscribed($p)) { continue;}
+        if(!is_sfida_subscribed($p, $iscrizioni)) { continue; }
 
         $user_r = get_user_meta('regione');
         $user_z = get_user_meta('zona');
@@ -956,18 +1072,14 @@ function mie_sfide_dashboard_widget(){
 
         $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
         $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
-        foreach ($icons as $icon) {
-            $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
-            . 'title="'. $icon['caption'] . '"'
-            .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
-        }
+        $sfida_html = $sfida_html . get_icons_html($icons);
         $sfida_html = $sfida_html . "</td>";
         $sfida_html .= '<td>' . get_iscrizione_status($p) . '</td>';
         array_push($printout, $sfida_html);
         $c++;
     }
 
-    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide disponibili</span><br>";
+    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sei iscritto</span><br>";
     echo "<table id=\"le-mie-sfide\">";
     echo "<thead><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th></tr><thead>\n";
     echo "<tbody>\n";
@@ -977,7 +1089,7 @@ function mie_sfide_dashboard_widget(){
         echo "</tr>";
     }
     echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><tfoot>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th></tr><tfoot>\n";
     echo "</table>";
     ?>
     <script type="text/javascript">
@@ -990,11 +1102,17 @@ function mie_sfide_dashboard_widget(){
 }
 
 function create_mie_sfide_widget(){
-//    wp_add_dashboard_widget( 'le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'mie_sfide_filter' );
-    add_meta_box('le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'dashboard', 'side', 'high');
+    global $current_user;
+
+    $admitted_role = array('utente_eg', 'administrator', 'editor');
+    $roles = $current_user->roles;
+    foreach ($roles as $role) {
+        add_meta_box('le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'dashboard', 'normal', 'high');
+        return;
+    }
 }
 
-add_action('wp_dashboard_setup', 'create_mie_sfide_widget');
+add_action('wp_dashboard_setup', 'create_sfide_miei_eg_widget');
 
 
 function add_datatable(){
@@ -1011,7 +1129,22 @@ function rtd_sfide_load_widget() {
 
 add_action( 'widgets_init', 'rtd_sfide_load_widget' );
 
+/* 
+    FORCE DASHBOARD TO BE ONE COLUMN
+*/
 
+function so_screen_layout_columns( $columns ) {
+    $columns['dashboard'] = 1;
+    return $columns;
+}
+add_filter( 'screen_layout_columns', 'so_screen_layout_columns' );
+
+function so_screen_layout_dashboard() {
+    return 1;
+}
+add_filter( 'get_user_option_screen_layout_dashboard', 'so_screen_layout_dashboard' );
+
+/* END FORCE DASHBOARD TO BE ONE COLUMN */
 
 // /**
 //  * Customize Event Query using Post Meta
