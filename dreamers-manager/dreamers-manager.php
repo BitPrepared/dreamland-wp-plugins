@@ -143,7 +143,7 @@ function gestione_ruoli_menu_page(){
     ?>
 
     <h1>Dreamers Join Request</h1>
-    <table class="widefat fixed" cellspacing="0">
+    <table id="join-requests" class="widefat fixed" cellspacing="0">
         <thead>
         <tr>
             <th id="columnname" class="manage-column column-columnname" scope="col">R</th> 
@@ -244,7 +244,7 @@ function gestione_ruoli_menu_page(){
     </table>
 
     <h1>Dreamers</h1>
-    <table class="widefat fixed" cellspacing="0">
+    <table id="dreamers" class="widefat fixed" cellspacing="0">
         <thead>
         <tr>
             <th id="columnname" class="manage-column column-columnname" scope="col">R</th> 
@@ -300,12 +300,21 @@ function gestione_ruoli_menu_page(){
 
         }
 
-        $ruolocensimento = $all_meta_for_user['ruolocensimento'];
+        // todo gestione dell'errore in caso di dati mancanti? 
+
+        if(isset($all_meta_for_user['ruolocensimento'])){
+            $ruolocensimento = $all_meta_for_user['ruolocensimento'];
+        } else {
+            $ruolocensimento = array();
+        }
+
+        $groupDisplay = (isset($all_meta_for_user['groupDisplay'])) ? $all_meta_for_user['groupDisplay'][0] : "" ;
+        $codicecensimento = (isset($all_meta_for_user['codicecensimento'])) ? $all_meta_for_user['codicecensimento'][0] : "";
 
         echo '<td class="column-columnname">'.implode(',',$ruolocensimento).'</td>';
-        echo '<td class="column-columnname">'.$all_meta_for_user['groupDisplay'][0].'</td>';
+        echo '<td class="column-columnname">'.$groupDisplay.'</td>';
         echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
-        echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
+        echo '<td class="column-columnname num">'.$codicecensimento.'</td>';
         echo '<td class="column-columnname">'.implode(', ', $user_info->roles).'</td>';
 
         echo '<td class="column-columnname">';
@@ -335,6 +344,13 @@ function gestione_ruoli_menu_page(){
 
         </tbody>
     </table>
+
+    <script type="text/javascript">
+    jQuery(document).ready(function($){
+        $('#dreamers').DataTable();
+        $('#join-requests').DataTable();
+    });
+    </script>
 
     <?php
 
@@ -440,4 +456,13 @@ function gestione_ruoli_menu() {
 
 // @see: https://nayeemmodi.wordpress.com/2011/06/20/creating-menus-and-submenus-in-wordpress/
 add_action('admin_menu', 'gestione_ruoli_menu');
+
+function add_datatable_scripts($hook){
+    if(isset($_GET['page']) && $_GET['page'] == 'dreamers'){
+        wp_enqueue_style( 'data-table-css', '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css');
+        wp_enqueue_script( 'data-table-js', '//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js', array('jquery'));
+    }
+}
+
+add_action( 'admin_enqueue_scripts', 'add_datatable_scripts' );
 
