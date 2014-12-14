@@ -182,6 +182,22 @@ function get_categorie_sfida($p){
        return $terms;
 }
 
+function get_elenco_categorie_sfida($p) {
+
+    $res = array();
+    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
+    if($terms && ! is_wp_error($terms)){
+        foreach ($terms as $term_key => $term_value) {
+            if ($term_value->name != "Sfida Speciale" && $term_value->name != "Grande Sfida") {
+                $res[] = $term_value->name;
+            }
+        }
+    }
+    return $res;
+}
+
+
+
 function get_icons_for_sfida($p){
 	    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
