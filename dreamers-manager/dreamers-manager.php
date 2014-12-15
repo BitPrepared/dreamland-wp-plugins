@@ -66,7 +66,6 @@ function user_notification_password($user_id,$plaintext_pass,$ruolo) {
     $message .= sprintf(__('Username: %s'), $user->user_login) . "\r\n";
     $message .= sprintf(__('Password: %s'), $plaintext_pass) . "\r\n";
     $message .= sprintf(__('Authorization code : %s'), 'dr3aml4and') . "\r\n";
-    $message .= 'il campo "Yubikey OTP" va lasciato vuoto' . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
     if ( strcmp($ruolo, 'eg') == 0 ) $message .= 'Per poter usare il pannello dovrai aspettare che il tuo capo reparto autorizzi la tua iscrizione' . "\r\n";
 
