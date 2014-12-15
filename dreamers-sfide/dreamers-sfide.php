@@ -1116,8 +1116,9 @@ add_action('wp_dashboard_setup', 'create_sfide_miei_eg_widget');
 
 
 function add_datatable(){
+    $wp_plugin_url = plugin_dir_url( __FILE__ );
     wp_enqueue_style( 'data-table-css', '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css');
-    wp_enqueue_script( 'data-table-js', '//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js', array('jquery'));
+    wp_enqueue_script( 'data-table-js', $wp_plugin_url.'js/jquery.dataTables.min.js', array('jquery'));
 }
 
 add_action('wp_dashboard_setup', "add_datatable");

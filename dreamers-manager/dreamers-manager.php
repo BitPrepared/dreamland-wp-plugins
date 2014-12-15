@@ -459,8 +459,9 @@ add_action('admin_menu', 'gestione_ruoli_menu');
 
 function add_datatable_scripts($hook){
     if(isset($_GET['page']) && $_GET['page'] == 'dreamers'){
+        $wp_plugin_url = plugin_dir_url( __FILE__ );
         wp_enqueue_style( 'data-table-css', '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css');
-        wp_enqueue_script( 'data-table-js', '//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js', array('jquery'));
+        wp_enqueue_script( 'data-table-js', $wp_plugin_url.'js/jquery.dataTables.min.js', array('jquery'));
     }
 }
 

@@ -196,8 +196,6 @@ function get_elenco_categorie_sfida($p) {
     return $res;
 }
 
-
-
 function get_icons_for_sfida($p){
 	    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
