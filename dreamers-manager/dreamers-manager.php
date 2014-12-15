@@ -463,6 +463,13 @@ function add_datatable_scripts($hook){
         wp_enqueue_style( 'data-table-css', '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css');
         wp_enqueue_script( 'data-table-js', $wp_plugin_url.'js/jquery.dataTables.min.js', array('jquery'));
     }
+    ?>
+    <style>
+    td {
+        text-align: center;
+    }
+    </style>
+    <?php
 }
 
 add_action( 'admin_enqueue_scripts', 'add_datatable_scripts' );
