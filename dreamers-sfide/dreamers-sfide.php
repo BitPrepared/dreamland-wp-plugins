@@ -947,6 +947,7 @@ function sfide_dei_miei_eg_dashboard_widget(){
 
     switch ($roles) {
             case 'iabr':
+            case 'referente_regionale':
                 $m_key = USER_META_KEY_REGIONE;
                 $msg = "della tua regione";
                 break;
@@ -957,7 +958,7 @@ function sfide_dei_miei_eg_dashboard_widget(){
             case 'capo_reparto':
             default:
                 $m_key = USER_META_KEY_GROUP;
-                $msg = "del tuo reparto " . $current_user->last_name;
+                $msg = "del tuo reparto ";
                 break;
         }
 
@@ -975,17 +976,20 @@ function sfide_dei_miei_eg_dashboard_widget(){
 
     $c = 0;
     $printout = array();
+    $all_posts = get_posts(array( 'post_type' => 'sfida_event', 'numberposts' => -1, 'posts_per_page' => -1));
     
     foreach ($query_users as $u) {
         $iscrizioni_user = get_iscrizioni($u->ID);
-        $user_sfide = get_posts(array( 'posts__in' => $iscrizioni_user, 'post_type' => 'sfida_event'));
-        foreach ($user_sfide as $sfida) {
+        foreach ($all_posts as $sfida) {          
+            if(!is_sfida_subscribed($sfida, $iscrizioni_user)){
+                continue;
+            }
             $line = "";
             $line .= "<tr>";
             $line .= "<td>" . $sfida->post_title . "</td>";
             $line .= "<td>" . get_limit_sfida($sfida, $regioni) . "</td>";
             $line .= "<td>" . get_icons_html(get_icons_for_sfida($sfida)) . "</td>";
-            $line .= "<td>" . get_iscrizione_status($sfida, $u->id). "</td>";
+            $line .= "<td>" . get_iscrizione_status($sfida, $u->ID) . "</td>";
             $line .= "<td>" . $u->last_name . "</td>";
             $line .= "<td>" . $u->first_name . "</td>";
             $line .= "</tr>";
@@ -1021,7 +1025,7 @@ function create_sfide_miei_eg_widget(){
     global $current_user;
 
     // todo sostituire con capability follow_sfide
-    $admitted_roles = array('iabr', 'iabz', 'administrator', 'capo_reparto');
+    $admitted_roles = array('iabr', 'iabz', 'administrator', 'capo_reparto', 'referente_regionale');
     $roles = $current_user->roles;
 
     foreach ($roles as $r) {
@@ -1060,9 +1064,6 @@ function mie_sfide_dashboard_widget(){
     $iscrizioni = get_iscrizioni();
     // _log($iscrizioni);
     foreach ($posts_array as $k => $p) {
-        // _log('mie sfide, post id : ' . $p->ID);
-        // if(!is_sfida_alive($p)) { continue; }
-        // if(!is_sfida_for_me($p)) { continue; }
         if(!is_sfida_subscribed($p, $iscrizioni)) { continue; }
 
         $user_r = get_user_meta('regione');
@@ -1071,9 +1072,8 @@ function mie_sfide_dashboard_widget(){
         $icons = get_icons_for_sfida($p);
 
         $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
-        $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
-        $sfida_html = $sfida_html . get_icons_html($icons);
-        $sfida_html = $sfida_html . "</td>";
+        $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n";
+        $sfida_html = $sfida_html . "<td>" .  get_icons_html($icons) . "</td>";
         $sfida_html .= '<td>' . get_iscrizione_status($p) . '</td>';
         array_push($printout, $sfida_html);
         $c++;
@@ -1081,7 +1081,9 @@ function mie_sfide_dashboard_widget(){
 
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sei iscritto</span><br>";
     echo "<table id=\"le-mie-sfide\">";
-    echo "<thead><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th></tr><thead>\n";
+    echo "<thead><tr><th>Sfida</th><th>Limitata a</th>"; 
+    echo "<th>Tipo di sfida</th>"; 
+    echo "<th>Stato</th></tr><thead>\n";
     echo "<tbody>\n";
     foreach ($printout as $key => $value) {
         echo "<tr>";
@@ -1089,7 +1091,9 @@ function mie_sfide_dashboard_widget(){
         echo "</tr>";
     }
     echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th></tr><tfoot>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th>"; 
+    echo "<th>Tipo di sfida</th>"; 
+    echo "<th>Stato</th></tr><tfoot>\n";
     echo "</table>";
     ?>
     <script type="text/javascript">
@@ -1104,11 +1108,14 @@ function mie_sfide_dashboard_widget(){
 function create_mie_sfide_widget(){
     global $current_user;
 
-    $admitted_role = array('utente_eg', 'administrator', 'editor');
+    $admitted_roles = array('utente_eg', 'administrator', 'editor');
     $roles = $current_user->roles;
+
     foreach ($roles as $role) {
-        add_meta_box('le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'dashboard', 'normal', 'high');
-        return;
+        if(in_array($role, $admitted_roles)){
+            add_meta_box('le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'dashboard', 'normal', 'high');
+            return;
+        }
     }
 }
 
@@ -1122,6 +1129,20 @@ function add_datatable(){
 }
 
 add_action('wp_dashboard_setup', "add_datatable");
+
+function add_custom_style(){
+    ?>
+    <style>
+    td {
+        text-align: center;
+    }
+    </style>
+    <?php
+}
+
+add_action( 'admin_enqueue_scripts', 'add_custom_style' );
+
+
 
 // Registra e carica il widget del frontend per le sfide
 function rtd_sfide_load_widget() {

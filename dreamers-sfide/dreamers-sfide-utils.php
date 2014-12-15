@@ -3,16 +3,16 @@
 abstract class StatusIscrizione {
 
     /* L'utente ha richiesto l'iscrizione */
-    const Richiesta = 'iscrizione-richiesta';
-
-    /* La sfida è stata autorizzata dal capo reparto */
-    const Autorizzata = 'iscrizione-autorizzata';
+    const Richiesta = 'Attiva';
     
     /* La sfida è stata portata a termine e caricato il resoconto*/
-    const Completata = 'iscrizione-completate';
+    const Completata = 'Conclusa';
+
+    /* La sfida è approvata dal capo reparto */
+    const Approvata = 'Approvata';
 
     /* Disiscrizione da parte dell'utente */
-    const Annullata = 'iscrizione-annullata';
+    const Annullata = 'Annullata';
 }
 
 function is_sfida_alive($p){
@@ -116,26 +116,23 @@ function get_iscrizioni($user_id = NULL){
             return array();
         }
     }
-    // _log("Ritorno iscrizioni per utente " . $user_id);
     $res = get_user_meta($user_id, '_iscrizioni', False);
-    // _log($res);
-	return $res;
+    return $res;
 }
 
 function is_sfida_subscribed($p, $iscrizioni=False){
 	
+    if(!$p || !isset($p->ID)){
+        return false;
+    }
+
 	if( $iscrizioni === False){
 		$iscrizioni = get_iscrizioni();
 	}
 
 	if ($iscrizioni && in_array($p->ID, $iscrizioni)){
-        $status = get_iscrizione_status($p);
         return true;
-        return 
-            $status == StatusIscrizione::Autorizzata ||
-            $status == StatusIscrizione::Richiesta;
     }
-    // _log("subscriber, Non entrato nell if");
 }
 
 function is_sfida_speciale($p) {
@@ -158,9 +155,7 @@ function get_iscrizione_status($p, $user_id = NULL){
         $user_id = get_current_user_id();
     }
 
-	$q = get_user_meta( get_current_user_id(),'_iscrizione_' . $p->ID);
-	
-	return ($q) ? $q[0] : False;
+	return get_user_meta( $user_id,'_iscrizione_' . $p->ID, True);
 }
 
 function set_iscrizione_status($p, $s){
@@ -251,5 +246,7 @@ function get_icons_html($icons){
             $res = $res . '<img alt="'. $icon['caption'] . '" '
             . 'title="'. $icon['caption'] . '"'
             .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
-        }
+    }
+    return $res;
+
 }
