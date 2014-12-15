@@ -124,6 +124,18 @@ function skip_email_exist($user_email){
 // This hook should run before user email validation
 add_filter( 'pre_user_email', 'skip_email_exist');
 
+// LOGIN / LOGOUT (https://github.com/gedex/wp-better-hipchat/issues/3)
+add_filter( 'hipchat_get_events', function( $events ) {
+    $events['user_login'] = array(
+        'action'      => 'wp_login',
+        'description' => __( 'When user logged in', 'better-hipchat' ),
+        'message'     => function( $user_login ) {
+            return sprintf( '%s is logged in', $user_login );
+        }
+    );
+    return $events;
+} );
+
 
 //REDIRECT DOPO IL LOGIN
 function send_to_dashboard($user_login, $user){
