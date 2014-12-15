@@ -1038,6 +1038,44 @@ function create_sfide_miei_eg_widget(){
 
 add_action('wp_dashboard_setup', 'create_mie_sfide_widget');
 
+function notizie_dashboard_widget($uno){
+
+    $posts = get_posts(array('category_name'  => "news"));
+    foreach ($posts as $p) {
+    ?>
+        <p>
+        <?php echo $p->post_date ?>
+        <span style="font-size: 15pt; font-weight:bold; margin-left: 10px">   
+              <a href="<?php echo post_permalink($p) ?>">
+                <?php echo $p->post_title; ?>
+            </a>
+        </span>
+        </p>
+    <?php 
+    }
+
+}
+
+function create_notizie_widget(){
+    add_meta_box('notizie_da_dreamland', 'Notize da Dreamland', 'notizie_dashboard_widget', 'dashboard', 'normal', 'high');
+}
+
+
+add_action('wp_dashboard_setup', 'create_notizie_widget');
+
+// No "news" on the homepage
+function preventHomepageNews($query) {
+    if($query->is_home && $query->is_main_query()) {
+        _log("prevent category news in home, " . get_cat_ID('news'));
+        // _log($query);
+        $query->set('cat', "-" . get_cat_ID('news'));
+        // _log($query);
+    }
+    return $query;
+}
+
+add_filter('pre_get_posts', 'preventHomepageNews', 10, 1);
+
 
 /*
         WIDGET LE MIE SFIDE
