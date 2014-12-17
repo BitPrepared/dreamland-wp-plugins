@@ -88,6 +88,7 @@ function evaluateUserState($id) {
         'user_login' => $user_info->data->user_login,
         'user_registered' => $user_info->data->user_registered,
         'roles' => $user_info->roles,
+        'email' => $user_info->user_email,
         'codicecensimento' => $codicecensimento
     ),
     'logout_url' => wp_logout_url( home_url() )
