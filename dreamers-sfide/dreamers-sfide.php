@@ -445,7 +445,7 @@ function sfide_custom_meta() {
         // context -> (string) (optional) The part of the page where the edit screen section should be shown ('normal', 'advanced', or 'side'). (Note that 'side' doesn't exist before 2.7)
         add_meta_box( 'sfide_event_start_meta', 'Inizio Evento', 'sfide_event_date', 'sfida_event', 'normal', 'default', array( 'id' => '_start') );
         add_meta_box( 'sfide_event_end_meta', 'Fine Evento', 'sfide_event_date', 'sfida_event', 'normal', 'default', array('id'=>'_end') );
-	    add_meta_box( 'sfide_event_limit_meta', 'Limita a', 'sfide_event_limit', 'sfida_event', 'normal', 'default', array());
+	    add_meta_box( 'sfide_event_limit_meta', 'Rivolta a', 'sfide_event_limit', 'sfida_event', 'normal', 'default', array());
     }
     add_meta_box( 'racconti_sfide_meta', 'Avanzate Sfida', 'racconti_sfide_meta_callback', 'sfida_review' );
 }
@@ -897,7 +897,7 @@ function sfide_disponibili_dashboard_widget(){
 
     echo "<span style=\"text-align:right;\">Hai ". count($printout) ." sfide disponibili</span><br>";
     echo "<table id=\"sfide-disponibili\">";
-    echo "<thead><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><thead>\n";
+    echo "<thead><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th></tr><thead>\n";
     echo "<tbody>\n";
     foreach ($printout as $key => $value) {
         echo "<tr>";
@@ -905,7 +905,7 @@ function sfide_disponibili_dashboard_widget(){
         echo "</tr>";
     }
     echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th></tr><tfoot>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th></tr><tfoot>\n";
     echo "</table>";
     ?>
     <script type="text/javascript">
@@ -1001,14 +1001,14 @@ function sfide_dei_miei_eg_dashboard_widget(){
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sono iscritti gli eg ";
     echo $msg . "</span><br>";
     echo "<table id=\"miei-eg-sfide\">";
-    echo "<thead><tr><th>Sfida</th><th>Limitata a</th>";
+    echo "<thead><tr><th>Sfida</th><th>Rivolta a</th>";
     echo "<th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><thead>\n";
     echo "<tbody>\n";
     foreach ($printout as $key => $value) {
         echo $value;
     }
     echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th><th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><tfoot>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><tfoot>\n";
     echo "</table>";
     ?>
     <script type="text/javascript">
@@ -1104,7 +1104,7 @@ function mie_sfide_dashboard_widget(){
 
     echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sei iscritto</span><br>";
     echo "<table id=\"le-mie-sfide\">";
-    echo "<thead><tr><th>Sfida</th><th>Limitata a</th>"; 
+    echo "<thead><tr><th>Sfida</th><th>Rivolta a</th>"; 
     echo "<th>Tipo di sfida</th>"; 
     echo "<th>Stato</th></tr><thead>\n";
     echo "<tbody>\n";
@@ -1114,7 +1114,7 @@ function mie_sfide_dashboard_widget(){
         echo "</tr>";
     }
     echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Limitata a</th>"; 
+    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th>"; 
     echo "<th>Tipo di sfida</th>"; 
     echo "<th>Stato</th></tr><tfoot>\n";
     echo "</table>";
