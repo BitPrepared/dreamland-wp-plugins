@@ -62,12 +62,15 @@ function user_notification_password($user_id,$plaintext_pass,$ruolo) {
     $user = get_userdata( $user_id );
 
     $message  = "Benvenuti in Dreamland \r\n\r\n";
-    $message .= "Utilizza queste credenziali per accedere al pannello di dreamland. \n\n";
+    $message .= "Utilizza queste credenziali per accedere a dreamland. \n\n";
     $message .= sprintf(__('Username: %s'), $user->user_login) . "\r\n";
     $message .= sprintf(__('Password: %s'), $plaintext_pass) . "\r\n";
     $message .= sprintf(__('Authorization code : %s'), 'dr3aml4and') . "\r\n";
     $message .= 'Pannello : '.wp_login_url() . "\r\n";
-    if ( strcmp($ruolo, 'eg') == 0 ) $message .= 'Per poter usare il pannello dovrai aspettare che il tuo capo reparto autorizzi la tua iscrizione' . "\r\n";
+    if ( strcmp($ruolo, 'eg') == 0 ) {
+        $message .= 'Per poter usare il sito dovrai aspettare che il tuo capo reparto autorizzi la tua iscrizione.' . "\r\n";
+        $message .= 'Riceverai una mail di notifica quando questa operazione sarà compiuta.' . "\r\n";
+    }
 
 
     if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
