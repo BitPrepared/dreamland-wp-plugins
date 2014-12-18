@@ -380,7 +380,7 @@ function rtdautorizzaeg_admin_action()
 
         $message  = "Ciao, \r\n\r\n";
         $message .= "autorizzazione completata.\r\n";
-        $message .= 'Accedi al pannello : '.wp_login_url() . " e inizia la sfida.\r\n";
+        $message .= 'Accedi al pannello : '. wp_login_url() . " e inizia la sfida.\r\n";
 
         if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
             wp_mail(get_option('admin_email'), 'Utenza '.$u->get('codicecensimento').' attivata', $message);
