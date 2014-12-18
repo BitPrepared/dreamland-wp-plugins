@@ -375,6 +375,17 @@ function rtdautorizzaeg_admin_action()
         // Add new roles
         $u->add_role( 'utente_eg' );
 
+        $message  = "Sei stato autorizzato, \r\n\r\n";
+        $message .= 'Accedi al pannello : '.wp_login_url() . " e inizia la sfida.\r\n";
+
+
+        if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
+            wp_mail(get_option('admin_email'), 'Utenza '.$u->get('codicecensimento').' attivata', $message);
+            wp_mail($u->user_email, 'Utenza attivita', $message);
+        } else {
+            _log('skip invio mail');
+        }
+
     } else {
         _log('invalid request rtdautorizzaeg_admin_action, missing selecteduser or invalid permission '.var_export($can, true));
     }
