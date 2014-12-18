@@ -73,7 +73,7 @@ function remove_wp_dashboard_widgets() {
 
     if ( is_multisite() ) {
         //MIEI SITI
-        remove_submenu_page('dashboard', 'my-sites');
+        remove_submenu_page('index.php', 'my-sites.php');
     }
 
   }
