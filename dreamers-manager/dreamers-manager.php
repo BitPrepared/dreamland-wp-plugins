@@ -378,13 +378,14 @@ function rtdautorizzaeg_admin_action()
         // Add new roles
         $u->add_role( 'utente_eg' );
 
-        $message  = "Sei stato autorizzato, \r\n\r\n";
+        $message  = "Ciao, \r\n\r\n";
+        $message  .= "autorizzazione completata,\r\n"
         $message .= 'Accedi al pannello : '.wp_login_url() . " e inizia la sfida.\r\n";
 
 
         if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
             wp_mail(get_option('admin_email'), 'Utenza '.$u->get('codicecensimento').' attivata', $message);
-            wp_mail($u->user_email, 'Utenza attivata', $message);
+            wp_mail($u->user_email, 'Return to Dreamland - Autorizzato', $message);
         } else {
             _log('skip invio mail');
         }
