@@ -384,7 +384,7 @@ function rtdautorizzaeg_admin_action()
 
         if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
             wp_mail(get_option('admin_email'), 'Utenza '.$u->get('codicecensimento').' attivata', $message);
-            wp_mail($u->user_email, 'Utenza attivita', $message);
+            wp_mail($u->user_email, 'Utenza attivata', $message);
         } else {
             _log('skip invio mail');
         }
