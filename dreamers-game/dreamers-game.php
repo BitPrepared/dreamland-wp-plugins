@@ -71,8 +71,10 @@ function remove_wp_dashboard_widgets() {
     wp_unregister_sidebar_widget( 'dashboard_activity' ); 
     remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');//since 3.8
 
-    //MIEI SITI
-    remove_submenu_page('index.php', 'my-sites');
+    if ( is_multisite() ) {
+        //MIEI SITI
+        remove_submenu_page('dashboard', 'my-sites');
+    }
 
   }
 
