@@ -215,7 +215,7 @@ function gestione_ruoli_menu_page(){
             echo '<td class="column-columnname">'.$gruppo.'</td>';
             echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
             echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
-            echo '<td class="column-columnname num">'.$all_meta_for_user['nome'][0].' '.$all_meta_for_user['nome'][0][0].'.</td>';
+            echo '<td class="column-columnname">'.$all_meta_for_user['nome'][0].' '.$all_meta_for_user['nome'][0][0].'.</td>';
             echo '<td class="column-columnname">'.implode(', ', $user_info->roles).'</td>';
 
             echo '<td class="column-columnname">';
@@ -322,6 +322,7 @@ function gestione_ruoli_menu_page(){
         echo '<td class="column-columnname">'.$groupDisplay.'</td>';
         echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
         echo '<td class="column-columnname num">'.$codicecensimento.'</td>';
+        echo '<td class="column-columnname">'.$all_meta_for_user['nome'][0].' '.$all_meta_for_user['nome'][0][0].'.</td>';
         echo '<td class="column-columnname">'.implode(', ', $user_info->roles).'</td>';
 
         echo '<td class="column-columnname">';
