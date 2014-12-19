@@ -152,6 +152,7 @@ function gestione_ruoli_menu_page(){
             <th id="columnname" class="manage-column column-columnname" scope="col">Gruppo</th> 
             <th id="columnname" class="manage-column column-columnname" scope="col">Squadriglia</th>
             <th id="columnname" class="manage-column column-columnname num" scope="col">Censimento</th>
+            <th id="columnname" class="manage-column column-columnname" scope="col">Identita</th>
             <th id="columnname" class="manage-column column-columnname" scope="col">Ruolo</th>
             <th id="columnname" class="manage-column column-columnname" scope="col">Azioni</th> 
         </tr>
@@ -162,6 +163,7 @@ function gestione_ruoli_menu_page(){
             <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname num" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname" scope="col"></th>
         </tr>
@@ -213,6 +215,7 @@ function gestione_ruoli_menu_page(){
             echo '<td class="column-columnname">'.$gruppo.'</td>';
             echo '<td class="column-columnname">'.$user_info->first_name.'</td>';
             echo '<td class="column-columnname num">'.$all_meta_for_user['codicecensimento'][0].'</td>';
+            echo '<td class="column-columnname num">'.$all_meta_for_user['nome'][0].' '.$all_meta_for_user['nome'][0][0].'.</td>';
             echo '<td class="column-columnname">'.implode(', ', $user_info->roles).'</td>';
 
             echo '<td class="column-columnname">';
@@ -253,6 +256,7 @@ function gestione_ruoli_menu_page(){
             <th id="columnname" class="manage-column column-columnname" scope="col">Gruppo</th> 
             <th id="columnname" class="manage-column column-columnname" scope="col">Squadriglia</th>
             <th id="columnname" class="manage-column column-columnname num" scope="col">Censimento</th>
+            <th id="columnname" class="manage-column column-columnname" scope="col">Identita</th>
             <th id="columnname" class="manage-column column-columnname" scope="col">Ruolo</th>
             <th id="columnname" class="manage-column column-columnname" scope="col">Azioni</th> 
         </tr>
@@ -263,6 +267,7 @@ function gestione_ruoli_menu_page(){
             <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname num" scope="col"></th>
+            <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname" scope="col"></th>
             <th class="manage-column column-columnname" scope="col"></th>
         </tr>
