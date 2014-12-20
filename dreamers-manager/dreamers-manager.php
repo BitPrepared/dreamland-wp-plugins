@@ -114,7 +114,7 @@ function inserted_user_dreamers($user , $data, $update) {
         $random_password = wp_generate_password( 12, false );
         wp_set_password( $random_password, $user_id );
         user_notification_password($user_id,$random_password,$ruolo);
-        _log('generato '.$random_password);
+        _log('generato '.$random_password.' per '.$user_id);
     }
 }
 
