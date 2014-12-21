@@ -17,8 +17,8 @@ abstract class StatusIscrizione {
     /* Restitisce la costante a partire da una string 
        Nota: controllare che il risultato non sia null
     */
-    function get_value_from_string(s){
-        switch (s) {
+    function get_value_from_string($s){
+        switch ($s) {
             case 'Attiva': return StatusIscrizione::Richiesta;
             case 'Conclusa': return StatusIscrizione::Completata;
             case 'Approvata': return StatusIscrizione::Approvata;
@@ -206,7 +206,7 @@ function rdt_completa_sfida($sfida, $user_id = NULL){
       // 'post_password'  => [ <string> ] // Password for post, if any. Default empty string.
       // 'guid'           => // Skip this and let Wordpress handle it, usually.
       // 'post_content_filtered' => // Skip this and let Wordpress handle it, usually.
-      'post_excerpt'   => "La sq" . $sq . "ha completato la sfida \"" . $sfida->post_name "\". Leggi il loro racconto.",
+      'post_excerpt'   => "La sq" . $sq . "ha completato la sfida \"" . $sfida->post_name . "\". Leggi il loro racconto.",
       // 'post_date'      => [ Y-m-d H:i:s ], // The time post was made.
       // 'post_date_gmt'  => [ Y-m-d H:i:s ], // The time post was made, in GMT.
       // 'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
@@ -242,7 +242,7 @@ function rdt_get_all_iscrizioni(){
 /* Ritorna i post come oggetti WP_Post
 */
 function rdt_get_all_sfide(){
-    return get_posts( array('post_type' => 'sfida_event' ););
+    return get_posts( array('post_type' => 'sfida_event' ));
 }
 
 function get_iscrizione_status($p, $user_id = NULL){
