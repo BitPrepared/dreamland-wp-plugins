@@ -176,6 +176,52 @@ function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
     add_user_meta($user_id,'_iscrizione_'.$sfida->ID, StatusIscrizione::Richiesta, True);
 }
 
+/* 
+    Ritorna l'id del resoconto in modo che si possa fare un redirect alla pagina 
+    di modifica.
+*/
+function rdt_completa_sfida($sfida, $user_id = NULL){
+    
+    if($user_id == NULL){
+        $user_id = get_current_user_id();
+    }
+
+    $sq = get_user_meta($user_id, 'squadriglia', True);
+
+    set_iscrizione_status($sfida, StatusIscrizione::Completata, True);
+    $post = array(
+      'post_content'   => "<i>Inserisci qui il racconto della sfida!</i>", // The full text of the post.
+      // 'post_name'      => "", // The name (slug) for your post
+      'post_title'     => "La sq" . $sq . "ha completato la sfida " . $sfida->post_name, // The title of your post.
+      // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
+      // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
+      'post_status' => 'draft',
+      'post_type'      => 'sfida_review',
+      'post_author'    => $user_id, // The user ID number of the author. Default is the current user ID.
+      // 'ping_status'    => [ 'closed' | 'open' ] // Pingbacks or trackbacks allowed. Default is the option 'default_ping_status'.
+      // 'post_parent'    => [ <post ID> ] // Sets the parent of the new post, if any. Default 0.
+      // 'menu_order'     => [ <order> ] // If new post is a page, sets the order in which it should appear in supported menus. Default 0.
+      // 'to_ping'        => // Space or carriage return-separated list of URLs to ping. Default empty string.
+      // 'pinged'         => // Space or carriage return-separated list of URLs that have been pinged. Default empty string.
+      // 'post_password'  => [ <string> ] // Password for post, if any. Default empty string.
+      // 'guid'           => // Skip this and let Wordpress handle it, usually.
+      // 'post_content_filtered' => // Skip this and let Wordpress handle it, usually.
+      'post_excerpt'   => "La sq" . $sq . "ha completato la sfida \"" . $sfida->post_name "\". Leggi il loro racconto.",
+      // 'post_date'      => [ Y-m-d H:i:s ], // The time post was made.
+      // 'post_date_gmt'  => [ Y-m-d H:i:s ], // The time post was made, in GMT.
+      // 'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
+      // 'post_category'  => [ array(<category id>, ...) ] // Default empty.
+      // 'tags_input'     => [ '<tag>, <tag>, ...' | array ] // Default empty.
+      // 'tax_input'      => [ array( <taxonomy> => <array | string> ) ] // For custom taxonomies. Default empty.
+      // 'page_template'  => [ <string> ] // Requires name of template file, eg template.php. Default empty.
+    );
+
+    $new_post_id = wp_insert_post( $post );  
+    add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
+    _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
+    return $new_post_id;
+}
+
 function rtd_disiscrivi_utente_da_sfida($sfida, $user_id = NULL){
     if($user_id == NULL){
         $user_id = get_current_user_id();
@@ -183,7 +229,6 @@ function rtd_disiscrivi_utente_da_sfida($sfida, $user_id = NULL){
 
     // Tieni traccia della disiscrizione
     _log("Sfida annullata, utente: " . $user_id . ", sfida: " . get_the_ID());
-    add_user_meta($user_id, '_iscrizione_annullata', get_the_ID());
     delete_user_meta($user_id, '_iscrizione_'.get_the_ID());
     delete_user_meta($user_id, '_iscrizione_'.get_the_ID());
 }
@@ -209,7 +254,8 @@ function get_iscrizione_status($p, $user_id = NULL){
 	return get_user_meta( $user_id,'_iscrizione_' . $p->ID, True);
 }
 
-function set_iscrizione_status($p, $s){
+function set_iscrizione_status($p, $s, $user_id = NULL){
+
 	update_user_meta(get_current_user_id(), '_iscrizione_' . $p->ID, $s);
 }
 
