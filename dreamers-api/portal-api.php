@@ -40,7 +40,7 @@ class Portal_API
             $uu->meta = $elencoMeta;
             return $uu;
         } else {
-            return "";
+            return new WP_Error( 'json_profile_invalid_id', __( 'Invalid codice censimento.' ), array( 'status' => 404 ) );
         }
 
     }
