@@ -13,6 +13,23 @@ abstract class StatusIscrizione {
 
     /* Disiscrizione da parte dell'utente */
     const Annullata = 'Annullata';
+
+    /* Restitisce la costante a partire da una string 
+       Nota: controllare che il risultato non sia null
+    */
+    function get_value_from_string(s){
+        switch (s) {
+            case 'Attiva': return StatusIscrizione::Richiesta;
+            case 'Conclusa': return StatusIscrizione::Completata;
+            case 'Approvata': return StatusIscrizione::Approvata;
+            case 'Annullata': return StatusIscrizione::Annullata;
+            default: return NULL;
+        }
+    }
+
+    function as_array(){
+        return array(Richiesta, Completata, Approvata, Annullata);
+    }
 }
 
 function is_sfida_alive($p){
@@ -147,6 +164,40 @@ function is_sfida_speciale($p) {
     }
 
     return false;
+}
+
+function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
+    if($user_id == NULL){
+        $user_id = get_current_user_id();
+    }
+
+    _log("Iscrizione sfida " . $sfida->ID . " per utente " . $user_id);
+    add_user_meta($user_id, '_iscrizioni', $sfida->ID, False);
+    add_user_meta($user_id,'_iscrizione_'.$sfida->ID, StatusIscrizione::Richiesta, True);
+}
+
+function rtd_disiscrivi_utente_da_sfida($sfida, $user_id = NULL){
+    if($user_id == NULL){
+        $user_id = get_current_user_id();
+    }
+
+    // Tieni traccia della disiscrizione
+    _log("Sfida annullata, utente: " . $user_id . ", sfida: " . get_the_ID());
+    add_user_meta($user_id, '_iscrizione_annullata', get_the_ID());
+    delete_user_meta($user_id, '_iscrizione_'.get_the_ID());
+    delete_user_meta($user_id, '_iscrizione_'.get_the_ID());
+}
+
+function rdt_get_all_iscrizioni(){
+    global $wpdb;
+    $results = $wpdb->get_results( 'SELECT user_id, meta_value FROM wp_usermeta WHERE meta_key = \'_iscrizioni\'', OBJECT );
+    return $results;
+}
+
+/* Ritorna i post come oggetti WP_Post
+*/
+function rdt_get_all_sfide(){
+    return get_posts( array('post_type' => 'sfida_event' ););
 }
 
 function get_iscrizione_status($p, $user_id = NULL){
