@@ -1029,7 +1029,8 @@ function create_sfide_miei_eg_widget(){
     $roles = $current_user->roles;
 
     foreach ($roles as $r) {
-        if(in_array($r, $admitted_roles)){ 
+        if(in_array($r, $admitted_roles)){
+            add_meta_box('notizie_capirep_da_dreamland', 'Notizie da Dreamland (Capi)', 'notizie_capirep_dashboard_widget', 'dashboard', 'normal', 'high');
             add_meta_box('sfide_dei_miei_eg', 'Le sfide degli EG che segui', 'sfide_dei_miei_eg_dashboard_widget', 'dashboard', 'normal', 'high');
             return;
         }
@@ -1038,7 +1039,24 @@ function create_sfide_miei_eg_widget(){
 
 add_action('wp_dashboard_setup', 'create_mie_sfide_widget');
 
-function notizie_dashboard_widget(){
+function notizie_capirep_dashboard_widget(){
+
+    $posts = get_posts(array('category_name'  => "news,news-capi"));
+    foreach ($posts as $p) {
+    ?>
+        <p>
+        <?php echo $p->post_date; ?>
+        <span style="font-size: 15pt; font-weight:bold; margin-left: 10px">   
+              <a href="<?php echo post_permalink($p) ?>">
+                <?php echo $p->post_title; ?>
+            </a>
+        </span>
+        </p>
+    <?php
+    }
+}
+
+function notizie_eg_dashboard_widget(){
 
     $posts = get_posts(array('category_name'  => "news"));
     foreach ($posts as $p) {
@@ -1054,13 +1072,6 @@ function notizie_dashboard_widget(){
     <?php
     }
 }
-
-function create_notizie_widget(){
-    add_meta_box('notizie_da_dreamland', 'Notizie da Dreamland', 'notizie_dashboard_widget', 'dashboard', 'normal', 'high');
-}
-
-
-add_action('wp_dashboard_setup', 'create_notizie_widget');
 
 /*
         WIDGET LE MIE SFIDE
@@ -1136,6 +1147,7 @@ function create_mie_sfide_widget(){
 
     foreach ($roles as $role) {
         if(in_array($role, $admitted_roles)){
+            add_meta_box('notizie_eg_da_dreamland', 'Notizie da Dreamland', 'notizie_eg_dashboard_widget', 'dashboard', 'normal', 'high');
             add_meta_box('le_mie_sfide', 'Le tue sfide', 'mie_sfide_dashboard_widget', 'dashboard', 'normal', 'high');
             return;
         }
