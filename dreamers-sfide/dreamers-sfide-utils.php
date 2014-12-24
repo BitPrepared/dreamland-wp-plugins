@@ -222,15 +222,21 @@ function rdt_completa_sfida($sfida, $user_id = NULL){
     return $new_post_id;
 }
 
-function rtd_disiscrivi_utente_da_sfida($sfida, $user_id = NULL){
+function rtd_disiscrivi_utente_da_sfida($idsfida, $user_id = NULL){
     if($user_id == NULL){
         $user_id = get_current_user_id();
     }
 
     // Tieni traccia della disiscrizione
-    _log("Sfida annullata, utente: " . $user_id . ", sfida: " . get_the_ID());
-    delete_user_meta($user_id, '_iscrizione_'.get_the_ID());
-    delete_user_meta($user_id, '_iscrizione_'.get_the_ID());
+    _log("Sfida annullata, utente: " . $user_id . ", sfida: " . $idsfida);
+    if ( !delete_user_meta($user_id, '_iscrizione_'.$idsfida) ) {
+        _log('meta non cancellato  _iscrizione_'.$idsfida);
+    }
+
+    $iscrizioni = get_user_meta($user_id,'_iscrizioni',true);
+    $iscrizioni = str_replace($idsfida,'',$iscrizioni);
+    update_user_meta($user_id,'_iscrizioni',$iscrizioni);
+
 }
 
 function rdt_get_all_iscrizioni(){

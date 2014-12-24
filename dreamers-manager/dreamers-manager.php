@@ -111,10 +111,17 @@ function inserted_user_dreamers($user , $data, $update) {
                 $u->add_role( 'referente_regionale' );
             }
         }
-        $random_password = wp_generate_password( 12, false );
+
+        if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
+            $random_password = wp_generate_password(12, false);
+            _log('generato '.$random_password.' per '.$user_id);
+        } else {
+            $random_password = $data['username'];
+            _log('pwd '.$random_password.' per '.$user_id);
+        }
         wp_set_password( $random_password, $user_id );
         user_notification_password($user_id,$random_password,$ruolo);
-        _log('generato '.$random_password.' per '.$user_id);
+
     }
 }
 
