@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Return To Dreamland Dreamers
+ * Plugin Name: Return To Dreamland Dreamers Manager
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin per la gestione dei "Sognatori"
  * Version: 0.2
