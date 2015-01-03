@@ -3,7 +3,7 @@
  * Plugin Name: Return to Dreamland
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin base di dreamland
- * Version: 0.1
+ * Version: 0.2
  * Author: BitPrepared
  * Author URI: http://github.com/BitPrepared 
  * License: GPLv3

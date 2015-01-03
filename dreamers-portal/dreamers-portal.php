@@ -3,7 +3,7 @@
  * Plugin Name: Return To Dreamland Portal bridge
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin ponte tra portal e wordpress
- * Version: 0.1
+ * Version: 0.2
  * Author: Bit Prepared
  * Author URI: http://github.com/BitPrepared 
  * License: GPLv3

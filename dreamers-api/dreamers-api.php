@@ -3,7 +3,7 @@
  * Plugin Name: Return To Dreamland API JSON (WP-API)
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin per la fornire API da usare esternamente
- * Version: 0.1
+ * Version: 0.2
  * Author: Bit Prepared
  * Author URI: http://github.com/BitPrepared
  * License: GPLv3

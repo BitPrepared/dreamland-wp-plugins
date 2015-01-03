@@ -3,7 +3,7 @@
  * Plugin Name: Return to Dreamland - Sfide
  * Plugin URI: http://github.com/BitPrepared/dreamland-wp-plugins
  * Description: Plugin per la gestione dei "Racconti Sfida"
- * Version: 0.1
+ * Version: 0.2
  * Author: Bit Prepared
  * Author URI: http://github.com/BitPrepared 
  * License: GPLv3
