@@ -53,6 +53,11 @@ function dreamers_api_init() {
     global $dreamers_api;
     $dreamers_api = new Portal_API();
     add_filter( 'json_endpoints', array( $dreamers_api, 'register_routes' ) );
+
+    //@see: https://developer.wordpress.org/reference/hooks/enable_edit_any_user_configuration/
+    remove_all_filters( 'enable_edit_any_user_configuration' );
+    add_filter( 'enable_edit_any_user_configuration', '__return_true');
+
 }
 
 add_action( 'wp_json_server_before_serve', 'dreamers_api_init' );
