@@ -233,9 +233,9 @@ function rtd_disiscrivi_utente_da_sfida($idsfida, $user_id = NULL){
         _log('meta non cancellato  _iscrizione_'.$idsfida);
     }
 
-    $iscrizioni = get_user_meta($user_id,'_iscrizioni',true);
-    $iscrizioni = str_replace($idsfida,'',$iscrizioni);
-    update_user_meta($user_id,'_iscrizioni',$iscrizioni);
+    if ( !delete_user_meta($user_id, '_iscrizioni', $idsfida) ) {
+        _log('meta non cancellato  _iscrizioni : '.$idsfida);
+    }
 
 }
 
