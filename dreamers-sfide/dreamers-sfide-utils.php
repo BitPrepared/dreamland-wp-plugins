@@ -188,7 +188,7 @@ function rdt_completa_sfida($sfida, $user_id = NULL){
 
     $sq = get_user_meta($user_id, 'squadriglia', True);
 
-    set_iscrizione_status($sfida, StatusIscrizione::Completata, True);
+    set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
     $post = array(
       'post_content'   => "<i>Inserisci qui il racconto della sfida!</i>", // The full text of the post.
       // 'post_name'      => "", // The name (slug) for your post
