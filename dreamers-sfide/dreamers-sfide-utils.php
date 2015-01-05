@@ -152,6 +152,15 @@ function is_sfida_subscribed($p, $iscrizioni=False){
     }
 }
 
+function is_sfida_completed($p){
+
+    if(!$p || !isset($p->ID)){
+        return false;
+    }
+
+    return get_iscrizione_status($p) === StatusIscrizione::Completata;
+}
+
 function is_sfida_speciale($p) {
     
     $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
