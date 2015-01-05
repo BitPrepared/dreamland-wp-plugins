@@ -956,23 +956,31 @@ function sfide_dei_miei_eg_dashboard_widget(){
                 $msg = "della tua zona";
                 break;
             case 'capo_reparto':
-            default:
                 $m_key = USER_META_KEY_GROUP;
                 $msg = "del tuo reparto ";
                 break;
+            default:
+                $m_key = False;
+                $msg = "";
+                break;
         }
 
-    $m_value = get_user_meta($current_user->ID, $m_key, 1);
+    if($m_key){
+        $m_value = get_user_meta($current_user->ID, $m_key, 1);
+    } else {
+        $m_value = NULL;
+    }
 
     if($m_value){
-        $users_args = array(
+        $user_args = array(
             'meta_key' => $m_key,
-            'meta_value' => $m_value
+            'meta_value' => $m_value,
+             'role' => 'utente_eg'
         );
-        $query_users = get_users($users_args);
     } else {
-        $query_users = array();
+        $user_args = array('role' => 'utente_eg');
     }
+    $query_users = get_users($user_args);
 
     $c = 0;
     $printout = array();
@@ -1025,7 +1033,7 @@ function create_sfide_miei_eg_widget(){
     global $current_user;
 
     // todo sostituire con capability follow_sfide
-    $admitted_roles = array('iabr', 'iabz', 'administrator', 'capo_reparto', 'referente_regionale');
+    $admitted_roles = array('iabr', 'iabz', 'administrator', 'capo_reparto', 'referente_regionale', 'editor');
     $roles = $current_user->roles;
 
     foreach ($roles as $r) {
@@ -1200,6 +1208,19 @@ function so_screen_layout_dashboard() {
     return 1;
 }
 add_filter( 'get_user_option_screen_layout_dashboard', 'so_screen_layout_dashboard' );
+
+function remove_all_metas(){
+    global $current_user;
+
+    if($current_user->roles[0] == 'utente_eg' && get_current_screen() == 'post'){
+        remove_meta_box('slugdiv', 'post', 'normal');
+        remove_meta_box('tipologiesfidediv', 'post', 'side');
+        remove_meta_box('racconti_sfide_meta', 'post', 'normal');
+
+    }
+}
+
+add_action('do_meta_boxes', 'remove_all_metas');
 
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
 
