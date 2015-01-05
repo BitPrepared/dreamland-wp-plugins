@@ -180,7 +180,7 @@ function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
     Ritorna l'id del resoconto in modo che si possa fare un redirect alla pagina 
     di modifica.
 */
-function rdt_completa_sfida($sfida, $user_id = NULL){
+function rtd_completa_sfida($sfida, $user_id = NULL){
     
     if($user_id == NULL){
         $user_id = get_current_user_id();
@@ -190,9 +190,9 @@ function rdt_completa_sfida($sfida, $user_id = NULL){
 
     set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
     $post = array(
-      'post_content'   => "<i>Inserisci qui il racconto della sfida!</i>", // The full text of the post.
+      'post_content'   => "<i>Inserisci qui il racconto della sfida! Non dimenticare foto e video :)</i>", // The full text of the post.
       // 'post_name'      => "", // The name (slug) for your post
-      'post_title'     => "La sq" . $sq . "ha completato la sfida " . $sfida->post_name, // The title of your post.
+      'post_title'     => "La sq. " . $sq . " ha completato la sfida " . $sfida->post_title, // The title of your post.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',
@@ -206,7 +206,7 @@ function rdt_completa_sfida($sfida, $user_id = NULL){
       // 'post_password'  => [ <string> ] // Password for post, if any. Default empty string.
       // 'guid'           => // Skip this and let Wordpress handle it, usually.
       // 'post_content_filtered' => // Skip this and let Wordpress handle it, usually.
-      'post_excerpt'   => "La sq" . $sq . "ha completato la sfida \"" . $sfida->post_name . "\". Leggi il loro racconto.",
+      'post_excerpt'   => "La sq" . $sq . "ha completato la sfida \"" . $sfida->post_title . "\". Leggi il loro racconto.",
       // 'post_date'      => [ Y-m-d H:i:s ], // The time post was made.
       // 'post_date_gmt'  => [ Y-m-d H:i:s ], // The time post was made, in GMT.
       // 'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
