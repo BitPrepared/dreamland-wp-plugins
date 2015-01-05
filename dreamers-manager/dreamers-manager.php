@@ -362,8 +362,11 @@ function gestione_ruoli_menu_page(){
 
     <script type="text/javascript">
     jQuery(document).ready(function($){
-        $('#dreamers').DataTable();
-        $('#join-requests').DataTable();
+        $('#dreamers').DataTable(
+            {"pageLength" : 50 });
+        $('#join-requests').DataTable(
+            { "pageLength" : 50 }
+            );
     });
     </script>
 
