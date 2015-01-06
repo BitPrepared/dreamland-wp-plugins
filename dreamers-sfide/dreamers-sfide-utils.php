@@ -42,7 +42,7 @@ function is_sfida_alive($p){
     }
 
     $d = new DateTime($data['_year'][0].'-'.$data['_month'][0].'-'.$data['_day'][0].' '.
-    	$data['_month'][0].':'.$data['_minute'][0]);
+    	$data['_hour'][0].':'.$data['_minute'][0]);
     $now = new DateTime();
 
     return ($d > $now);
