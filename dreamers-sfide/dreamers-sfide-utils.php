@@ -185,6 +185,24 @@ function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
     add_user_meta($user_id,'_iscrizione_'.$sfida->ID, StatusIscrizione::Richiesta, True);
 }
 
+
+function rtd_tagify($s){
+    
+    $r = strtolower($s);
+
+    $r = trim($s);
+
+    // wp sanitize title (used to create slugs). see http://codex.wordpress.org/Function_Reference/sanitize_title
+    // Removes special characters and accents
+    $r = sanitize_title($r);
+
+    // see http://codex.wordpress.org/Function_Reference/sanitize_title_with_dashes
+    // Removes whitespaces and changes to dashes
+    $r = sanitize_title_with_dashes($r);
+
+    return $r;
+}
+
 /* 
     Ritorna l'id del resoconto in modo che si possa fare un redirect alla pagina 
     di modifica.
@@ -194,10 +212,22 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
     if($user_id == NULL){
         $user_id = get_current_user_id();
     }
-
-    $sq = get_user_meta($user_id, 'squadriglia', True);
+    $um = get_user_meta($user_id);
+    $sq = $um['squadriglia'];
 
     set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
+
+    // I tag associati al resoconto
+    $post_tags_values = array( 
+        $um['squadriglia'], 
+        $um['groupDisplay'], 
+        $um['zoneDisplay'], 
+        $um['regionDisplay']
+    );
+
+    // Normalizzati
+    $post_tags = array_map("rtd_tagify", $post_tags_values);
+
     $post = array(
       'post_content'   => "<i>Inserisci qui il racconto della sfida! Non dimenticare foto e video :)</i>", // The full text of the post.
       // 'post_name'      => "", // The name (slug) for your post
@@ -220,7 +250,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
       // 'post_date_gmt'  => [ Y-m-d H:i:s ], // The time post was made, in GMT.
       // 'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
       // 'post_category'  => [ array(<category id>, ...) ] // Default empty.
-      // 'tags_input'     => [ '<tag>, <tag>, ...' | array ] // Default empty.
+      'tags_input'     => $post_tags
       // 'tax_input'      => [ array( <taxonomy> => <array | string> ) ] // For custom taxonomies. Default empty.
       // 'page_template'  => [ <string> ] // Requires name of template file, eg template.php. Default empty.
     );
