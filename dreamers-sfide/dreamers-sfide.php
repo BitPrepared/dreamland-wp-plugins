@@ -82,6 +82,7 @@ function rtd_sfide_install(){
     $role = get_role('utente_eg');
     $role->add_cap('view_sfide_review');
     $role->add_cap('insert_sfide_review');
+    $role->add_cap('upload_files');
     
     $role = get_role('capo_reparto');
     $role->add_cap('view_sfide_review');
@@ -1212,15 +1213,46 @@ add_filter( 'get_user_option_screen_layout_dashboard', 'so_screen_layout_dashboa
 function remove_all_metas(){
     global $current_user;
 
-    if($current_user->roles[0] == 'utente_eg' && get_current_screen() == 'post'){
-        remove_meta_box('slugdiv', 'post', 'normal');
-        remove_meta_box('tipologiesfidediv', 'post', 'side');
-        remove_meta_box('racconti_sfide_meta', 'post', 'normal');
-
+    if($current_user->roles[0] == 'utente_eg'){
+        remove_meta_box('slugdiv', 'sfida_review', 'normal');
+        remove_meta_box('tipologiesfidediv', 'sfida_review', 'side');
+        remove_meta_box('racconti_sfide_meta', 'sfida_review', 'normal');
     }
 }
 
-add_action('do_meta_boxes', 'remove_all_metas');
+add_action('add_meta_boxes', 'remove_all_metas');
+
+function sfida_review_admin_css_js() {
+    global $current_user;
+
+    if($current_user->roles[0] == 'utente_eg'){
+        global $post_type;
+        if($post_type == 'sfida_review') {
+            echo '<style type="text/css">'.
+                '#titlediv,.add-new-h2,#delete-action,#edit-slug-box,#view-post-btn {display: none;}'.
+                '</style>';
+            ?><script>jQuery(document).ready(function(){
+                jQuery("#publish").click(
+                    function(e){
+                        var event = e || window.event;
+                        var res = confirm("Vuoi pubblicare il racconto?" +
+                        "Dopo averlo pubblicato non sarà più possibile modificarlo!" +
+                        "Il resoconto verrà inviato al tuo caporeparto per essere approvato.");
+                        if(!res){
+                            event.stopPropagation();
+                            event.cancelBubble = true;
+                            return false;
+                        }
+                 });
+                jQuery("#publish").attr("value", "Racconto completato");
+                jQuery("#save-action").prepend(jQuery("input#save.button"));
+
+            });</script><?php
+        }
+    }
+
+}
+add_action('admin_head', 'sfida_review_admin_css_js');
 
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
 
