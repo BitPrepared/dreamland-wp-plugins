@@ -1001,6 +1001,12 @@ function sfide_dei_miei_eg_dashboard_widget(){
             $line .= "<td>" . get_iscrizione_status($sfida, $u->ID) . "</td>";
             $line .= "<td>" . $u->last_name . "</td>";
             $line .= "<td>" . $u->first_name . "</td>";
+            $line .= "<td>";
+            $r_id = get_racconto_sfida($u->ID, $sfida->ID);
+            if($r_id){
+                $line .= '<a href="'. get_permalink($r_id) .'">Vedi</a><a href="'. $get_edit_post_link($r_id).'">Modifica</a>';
+            }
+            $line .= "</td>";
             $line .= "</tr>";
             array_push($printout, $line);
             $c += 1;
@@ -1011,13 +1017,13 @@ function sfide_dei_miei_eg_dashboard_widget(){
     echo $msg . "</span><br>";
     echo "<table id=\"miei-eg-sfide\">";
     echo "<thead><tr><th>Sfida</th><th>Rivolta a</th>";
-    echo "<th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><thead>\n";
+    echo "<th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th><th>Racconto</th></tr><thead>\n";
     echo "<tbody>\n";
     foreach ($printout as $key => $value) {
         echo $value;
     }
     echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th></tr><tfoot>\n";
+    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th><th>Racconto</th></tr><tfoot>\n";
     echo "</table>";
     ?>
     <script type="text/javascript">
@@ -1115,9 +1121,15 @@ function mie_sfide_dashboard_widget(){
         $icons = get_icons_for_sfida($p);
 
         $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
-        $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n";
-        $sfida_html = $sfida_html . "<td>" .  get_icons_html($icons) . "</td>";
+        $sfida_html .= $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n";
+        $sfida_html .= $sfida_html . "<td>" .  get_icons_html($icons) . "</td>";
         $sfida_html .= '<td>' . get_iscrizione_status($p) . '</td>';
+        $sfida_html .= '<td>';
+        $racc_id = get_racconto_sfida($current_user, $p->ID);
+        if($racc_id){
+            $sfida_html .= '<a href="' . get_permalink($racc_id). '">Vedi</a><a href="'. get_edit_post_link($racc_id).'">Modifica</a>';    
+        }
+        $sfida_html .= '</td>';
         array_push($printout, $sfida_html);
         $c++;
     }
@@ -1126,7 +1138,7 @@ function mie_sfide_dashboard_widget(){
     echo "<table id=\"le-mie-sfide\">";
     echo "<thead><tr><th>Sfida</th><th>Rivolta a</th>"; 
     echo "<th>Tipo di sfida</th>"; 
-    echo "<th>Stato</th></tr><thead>\n";
+    echo "<th>Stato</th><th>Racconto</th></tr><thead>\n";
     echo "<tbody>\n";
     foreach ($printout as $key => $value) {
         echo "<tr>";
@@ -1136,7 +1148,7 @@ function mie_sfide_dashboard_widget(){
     echo "</tbody>\n";
     echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th>"; 
     echo "<th>Tipo di sfida</th>"; 
-    echo "<th>Stato</th></tr><tfoot>\n";
+    echo "<th>Stato</th><th>Racconto</th></tr><tfoot>\n";
     echo "</table>";
     ?>
     <script type="text/javascript">
@@ -1246,7 +1258,7 @@ function sfida_review_admin_css_js() {
                  });
                 jQuery("#publish").attr("value", "Racconto completato");
                 jQuery("#save-action").prepend(jQuery("input#save.button"));
-
+                jQuery("ul.subsubsub,p.search-box").hide();
             });</script><?php
         }
     }

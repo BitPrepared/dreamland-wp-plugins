@@ -1,5 +1,7 @@
 <?php
 
+define("RACCONTO_SFIDA_META_KEY", "racconto_sfida_");
+
 abstract class StatusIscrizione {
 
     /* L'utente ha richiesto l'iscrizione */
@@ -213,7 +215,11 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
         $user_id = get_current_user_id();
     }
     $um = get_user_meta($user_id);
-    $sq = $um['squadriglia'];
+    if(is_array($um['squadriglia'])){
+        $sq = $um['squadriglia'][0];
+    } else {
+        $sq = $um['squadriglia'];
+    }
 
     set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
 
@@ -229,7 +235,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
     $post_tags = array_map("rtd_tagify", $post_tags_values);
 
     $post = array(
-      'post_content'   => "<i>Inserisci qui il racconto della sfida! Non dimenticare foto e video :)</i>", // The full text of the post.
+      'post_content'   => "", // The full text of the post.
       // 'post_name'      => "", // The name (slug) for your post
       'post_title'     => "La sq. " . $sq . " ha completato la sfida " . $sfida->post_title, // The title of your post.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
@@ -257,6 +263,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
 
     $new_post_id = wp_insert_post( $post );  
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
+    add_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida_ID, $new_post_id);
     _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
     return $new_post_id;
 }
@@ -331,6 +338,12 @@ function get_elenco_categorie_sfida($p) {
         }
     }
     return $res;
+}
+
+function get_racconto_sfida($user_id, $sfida_id){
+    $m = get_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida_id, true);
+    if($m != '') return $m;
+    return false;
 }
 
 function get_icons_for_sfida($p){
