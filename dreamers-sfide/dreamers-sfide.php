@@ -1004,7 +1004,7 @@ function sfide_dei_miei_eg_dashboard_widget(){
             $line .= "<td>";
             $r_id = get_racconto_sfida($u->ID, $sfida->ID);
             if($r_id){
-                $line .= '<a href="'. get_permalink($r_id) .'">Vedi</a><a href="'. $get_edit_post_link($r_id).'">Modifica</a>';
+                $line .= '<a href="'. get_permalink($r_id) .'">Vedi</a><a href="'. get_edit_post_link($r_id).'">Modifica</a>';
             }
             $line .= "</td>";
             $line .= "</tr>";
@@ -1277,15 +1277,15 @@ function rs_draft_to_pending( $post ){
         _log("Utente eg " . $current_user->ID ." ha salvato il racconto " . $post->ID);
         
         // trova l'utente capo reparto
-        $udata = get_userdata($current_user->ID);
+        $umeta = get_user_meta($current_user->ID);
         $qargs = array(
             'role' => 'capo_reparto',
             'meta_key' => 'group',
-            'meta_value' => $udata['group'],
+            'meta_value' => $umeta['group'],
             'fields' => 'all'
         );
         $query_caporep = WP_User_Query($qargs);
-        $caporep = $query['0'];
+        $caporep = $query_caporep['0'];
 
         $sfida_id = get_post_meta($post->ID, 'sfida', true);
         $sfida = get_post($sfida_id); 
@@ -1301,7 +1301,7 @@ function rs_draft_to_pending( $post ){
         
         wp_mail($caporep->user_email, 
             sprintf($mail_obj_format, $post->post_title), 
-            sprintf($mail_obj_format, $udata['squadriglia'], $sfida->post_title, get_edit_post_link($post->id))
+            sprintf($mail_body_format, $umeta['squadriglia'], $sfida->post_title, get_edit_post_link($post->id))
         );
         // cambia ownership del post
         _log("Email inviata a " . $caporep->user_email);
