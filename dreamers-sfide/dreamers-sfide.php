@@ -1266,6 +1266,57 @@ function sfida_review_admin_css_js() {
 }
 add_action('admin_head', 'sfida_review_admin_css_js');
 
+
+/* GESTIONE TRANSIZIONE STATUS DEI RACCONTI SFIDA */
+
+function rs_draft_to_pending( $post ){
+    global $current_user;
+    if(! $post->post_type == 'sfida_review' ) return;
+
+    if(in_array('utente_eg', $current_user->roles)){
+        _log("Utente eg " . $current_user->ID ." ha salvato il racconto " . $post->ID);
+        
+        // trova l'utente capo reparto
+        $udata = get_userdata($current_user->ID);
+        $qargs = array(
+            'role' => 'capo_reparto',
+            'meta_key' => 'group',
+            'meta_value' => $udata['group'],
+            'fields' => 'all'
+        );
+        $query_caporep = WP_User_Query($qargs);
+        $caporep = $query['0'];
+
+        $sfida_id = get_post_meta($post->ID, 'sfida', true);
+        $sfida = get_post($sfida_id); 
+
+        // manda una mail al capo reparto
+        $mail_obj_format = "%s";
+        
+        $mail_body_format = "La %s ha completato il racconto della %s a cui si era iscritta!\n".
+             "Una volta completato il racconto, la squadriglia non può più modificarlo ".
+             "e tu devi approvarlo prima che sia pubblicato (solo per gli utenti iscritti) " .
+             "su Return to DreamLand.\n\n".
+             "Per vedere il racconto clicca qui: %s";
+        
+        wp_mail($caporep->user_email, 
+            sprintf($mail_obj_format, $post->post_title), 
+            sprintf($mail_obj_format, $udata['squadriglia'], $sfida->post_title, get_edit_post_link($post->id))
+        );
+        // cambia ownership del post
+        _log("Email inviata a " . $caporep->user_email);
+        
+        wp_update_post(array('ID' => $post->ID, 'post_author' => $caporep->ID));
+        
+
+        // setta manualmente
+    }
+}
+
+add_action('draft_to_pending', 'rs_draft_to_pending');
+
+/* FINE GESTIONE TRANSIZIONE STATUS DEI RACCONTI SFIDA  */
+
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
 
 // /**
