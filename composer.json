@@ -1,0 +1,8 @@
+{
+	"name": "bitprepared/dreamland-wp-plugins",
+	"description": "Dreamland plugin",
+	"keywords": ["plugin","wordpress"],
+	"license": "GPLv3",
+	"type": "project",
+	"minimum-stability": "stable"
+}
