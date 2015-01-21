@@ -3,6 +3,5 @@
 	"description": "Dreamland plugin",
 	"keywords": ["plugin","wordpress"],
 	"license": "GPLv3",
-	"type": "project",
-	"minimum-stability": "dev"
+	"type": "project"
 }
