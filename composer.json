@@ -4,5 +4,5 @@
 	"keywords": ["plugin","wordpress"],
 	"license": "GPLv3",
 	"type": "project",
-	"minimum-stability": "stable"
+	"minimum-stability": "dev"
 }
