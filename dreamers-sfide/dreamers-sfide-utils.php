@@ -79,7 +79,7 @@ function get_limit_sfida($p, $regioni){
 	return $res;
 }
 
-function is_sfida_for_me($p, $debug=false){
+function is_sfida_for_me($p, $debug=false, $user_id = null){
 
 	if(!is_user_logged_in()){
         _log('utente non autenticato');
@@ -101,9 +101,13 @@ function is_sfida_for_me($p, $debug=false){
 	}
 
 	$user = array();
-
+    if($user_id == null){
 	$u_r = get_user_meta($curr_user->ID,'regionShort');
 	$u_z = get_user_meta($curr_user->ID ,'zone');
+    } else {
+        $u_r = get_user_meta($user_id,'regionShort');
+        $u_z = get_user_meta($user_id ,'zone');
+    }
 
 	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
 	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";

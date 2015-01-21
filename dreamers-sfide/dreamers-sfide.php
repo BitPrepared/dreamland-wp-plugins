@@ -11,6 +11,7 @@
 
 require_once('dreamers-sfide-utils.php');
 require_once("dreamers-sfide-widget.php");
+require_once('generate-users.php');
 
 define("USER_META_KEY_REGIONE" , 'region');
 define("USER_META_KEY_REGIONE_DISPLAY" , 'regionDisplay');
@@ -56,6 +57,8 @@ add_action( 'admin_notices', 'alert_regional_data_missing' );
 //SETUP
 function rtd_sfide_install(){
 
+    global $regioni;
+
     /**
      * Detect plugin. For use in Admin area only.
      */
@@ -75,8 +78,8 @@ function rtd_sfide_install(){
     $role = get_role('referente_regionale');
     $role->add_cap('view_other_sfide_review');
     $role->add_cap('view_sfide_review');
-    $role->add_cap('insert_sfide');
-    $role->add_cap('manage_sfide');
+    //$role->add_cap('insert_sfide');
+    //$role->add_cap('manage_sfide');
     $role->add_cap('promuovi_sfide_review');
     
     $role = get_role('utente_eg');
@@ -95,6 +98,7 @@ function rtd_sfide_install(){
     $role->add_cap('view_sfide_review');
     $role->add_cap('view_other_sfide_review');
     $role->add_cap('conferma_sfide_review');
+    $role->add_cap('edit_iscrizioni');
 
     $role = get_role('administrator');
     $role->add_cap('insert_sfide');
@@ -104,6 +108,9 @@ function rtd_sfide_install(){
     $role->add_cap('view_sfide_review');
     $role->add_cap('view_other_sfide_review');
     $role->add_cap('conferma_sfide_review');
+    $role->add_cap('edit_iscrizioni');
+
+    generate_referenti_regionali($regioni);
 
 }
 
@@ -946,7 +953,7 @@ function sfide_dei_miei_eg_dashboard_widget(){
 
     $roles = $current_user->roles;
 
-    switch ($roles) {
+    switch ($roles[0]) {
             case 'iabr':
             case 'referente_regionale':
                 $m_key = USER_META_KEY_REGIONE;
@@ -1284,8 +1291,9 @@ function rs_draft_to_pending( $post ){
             'meta_value' => $umeta['group'],
             'fields' => 'all'
         );
-        $query_caporep = WP_User_Query($qargs);
-        $caporep = $query_caporep['0'];
+        $query = new WP_User_Query($qargs);
+        $query_caporep = $query->get_results();
+        $caporep = $query_caporep->results[0];
 
         $sfida_id = get_post_meta($post->ID, 'sfida', true);
         $sfida = get_post($sfida_id); 
@@ -1316,6 +1324,58 @@ function rs_draft_to_pending( $post ){
 add_action('draft_to_pending', 'rs_draft_to_pending');
 
 /* FINE GESTIONE TRANSIZIONE STATUS DEI RACCONTI SFIDA  */
+
+/* GESTIONE ISCRIZIONI */
+
+function edit_iscrizioni($user_id){
+    if(current_user_can('edit_iscrizioni') && user_can($user_id, 'insert_sfide_review')) {
+
+        $iscrizioni = get_iscrizioni( $user_id );
+
+        $all_sfide = get_posts( array( 'post_type' => 'sfida_event' ) );
+
+        echo "<h2>Iscrizioni a sfide</h2><ul>";
+        foreach ( $all_sfide as $sfida ) {
+            if ( is_sfida_subscribed( $sfida, $iscrizioni ) ) {
+                echo "<li>";
+                echo $sfida->post_title . " (" . get_iscrizione_status( $sfida, $user_id ) . ")";
+                echo "</li>";
+            }
+        }
+        echo "</ul>";
+
+        echo "<h3>Nuova iscrizione</h3>";
+        // echo '<input type="text" hidden="true" id="nuova_sfida_id" name="nuova_sfida_id">';
+        echo '<select name="nuova_sfida" id="nuova_sfida"> ';
+        foreach ( $all_sfide as $sfida ) {
+            if ( is_sfida_alive( $sfida ) && is_sfida_for_me( $sfida ) && ! is_sfida_subscribed( $sfida, $iscrizioni ) ) {
+                echo '<option value="' . $sfida->ID . '">' . $sfida->post_title . '</option>';
+            }
+        }
+        echo '</select>';
+    }
+
+}
+add_action('edit_user_profile', 'edit_iscrizioni');
+
+function update_extra_profile_fields($user_id) {
+    if ( current_user_can('edit_user') && isset($_POST['nuova_sfida'])) {
+        $nuova_sfida = filter_input(FILTER_SANITIZE_STRING, $_POST['nuova_sifda']);
+        if($nuova_sfida != ""){
+            $sfida = get_post($nuova_sfida);
+            if($sfida == null){
+                throw new Exception("Nuova iscrizione: Sfida non trovata : " . $nuova_sfida);
+            }
+            rdt_iscrivi_utente_a_sfida($sfida,$user_id);
+            _log("Iscritto utente " . $user_id . " alla sfida " . $nuova_sfida);
+        }
+
+    }
+}
+add_action('edit_user_profile_update', 'get_iscrizioni_change');
+
+/* FINE GESTIONE ISCRIZIONI */
+
 
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
 
