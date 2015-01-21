@@ -32,7 +32,9 @@ function rtd_manager_install(){
 
     $role = get_role('capo_reparto');
     $role->add_cap('abilita_eg');
-    
+
+    $role = get_role('referente_regionale');
+    $role->add_cap('abilita_eg');
 }
 
 register_activation_hook(__FILE__,'rtd_manager_install');
@@ -47,6 +49,9 @@ function rtd_manager_uninstall(){
     $role->remove_cap('manage_eg');
 
     $role = get_role('capo_reparto');
+    $role->remove_cap('abilita_eg');
+
+    $role = get_role('referente_regionale');
     $role->remove_cap('abilita_eg');
 }
 
