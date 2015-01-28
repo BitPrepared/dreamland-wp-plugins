@@ -253,7 +253,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
 
     $post = array(
       'post_content'   => "", // The full text of the post.
-      'post_name'      => rtd_tagify("Racconto " . $sq . " " . $gr ." sfida " . $sfida->post_title), // The name (slug) for your post
+      'post_name'      => "racconto-" . rtd_tagify($sq) . "-" . rtd_tagify($gr) ."sfida-" . $sfida->post_slug, // The name (slug) for your post
       'post_title'     => "La sq. " . $sq . " ha completato la sfida " . $sfida->post_title, // The title of your post.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',

@@ -1013,7 +1013,7 @@ function sfide_dei_miei_eg_dashboard_widget(){
             $line .= "<td>";
             $r_id = get_racconto_sfida($u->ID, $sfida->ID);
             if($r_id){
-                $line .= '<a href="'. get_permalink($r_id) .'">Vedi</a><a href="'. get_edit_post_link($r_id).'">Modifica</a>';
+                $line .= '<a href="'. get_permalink($r_id) .'">Vedi</a>'; //  <a href="'. get_edit_post_link($r_id).'">Modifica</a>';
             }
             $line .= "</td>";
             $line .= "</tr>";
@@ -1449,17 +1449,23 @@ function gestisci_sfida_review( $content ){
 
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
         $cbrns .=  "<div style=\"padding:10px;width:300px;\">";
-        $cbrns .= "<button style=\"margin:10px\" id=\"approva\" class=\"btn btn-success\">Approva</button>";
-        $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Respingi</button>";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
         $cbrns .= $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
         $cbrns .= '</label><textarea class=\"form-control\" style=\"width:300px;height: 100px;\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
-        $cbrns .= "</div></div> ";
+        $cbrns .= "</div>";
+        $cbrns .= "<button style=\"margin:10px\" id=\"approva\" class=\"btn btn-success\">Approva</button>";
+        $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
+        $cbrns .= "</div> ";
+
+        $testo_conferma_approva = "Vuoi approvare il resoconto della squadriglia?";
+        $test_conferma_respingi = "Vuoi rimandare il resoconto della squadriglia?".
+            " Una volta premuto il bottone l'EG potrà modificarlo nuovamente e poi dovrai nuovamente approvarlo.";
+
         ?>
         <script>
             jQuery(document).ready(function() {
                 jQuery('#approva').on('click', function () {
-                    var res = confirm("Vuoi approvare il resoconto della squadriglia?");
+                    var res = confirm("<?= $testo_conferma_approva ?>");
                     if(! res ) return;
                     <?php if($commento_obbligatorio): ?>
                     if(jQuery('#commento_capo_rep').val() == ""){
@@ -1470,7 +1476,7 @@ function gestisci_sfida_review( $content ){
                     window.location = window.location + "&approva";
                 });
                 jQuery('#respingi').on('click', function () {
-                    var res = confirm("Vuoi respingere il resoconto della squadriglia?");
+                    var res = confirm("<?= $test_conferma_respingi ?>");
                     if(! res ) return;
                     window.location = window.location + "&respingi";
                 });
@@ -1511,11 +1517,17 @@ function get_change_sfida_review(){
             add_post_meta($post->ID, 'commento_caporep', $commento_input);
         }
         _log("Racconto approvato: racconto " . $post->ID . " utente " . $current_user->ID);
-        wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina Racconti sfide", "Approvato!");
+        wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina <a href=\"" . get_site_url() . "" . "\">Racconti sfide</a>", "Approvato!");
     } elseif (isset($_GET['respingi'])) {
         $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
+        $user_sq = get_userdata($squadriglia);
         $post->post_author = $squadriglia;
         $post->post_status = 'draft';
+        wp_mail($user_sq->user_email, "Il racconto della sfida" . $post->post_title . " è da sistemare",
+            "Ciao,\nIl tuo caporeparto ha visto il racconto sfida che hai mandato e ha trovato".
+            "qualcosa da migliorare. Per favore parla direttamente con lui/lei e modificalo nuovamente.".
+            "Lo puoi trovare nel menu della bacheca alla voce 'Racconti Sfida");
+        _log("Inviata email per nuovo resoconto alla sq " . $squadriglia . " indirizzo " . $user_sq->user_email);
         wp_update_post($post);
         _log("Racconto respinto: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
