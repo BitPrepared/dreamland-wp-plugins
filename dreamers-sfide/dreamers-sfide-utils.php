@@ -36,15 +36,22 @@ abstract class StatusIscrizione {
 
 function is_sfida_alive($p){
 
-	$per = array('_year', '_month', '_day', '_hour', '_minute');
+    $all_meta = get_post_meta($p->ID);
+    $format = "%s-%s-%s %s:%s";
 
-	$data = array();
-    foreach ($per as $key => $value) {
-        $data[$value] = get_post_meta($p->ID, '_end' . $value);
+    function handle_array($maybe_arr){
+        return is_array($maybe_arr) && ! is_string($maybe_arr) ? $maybe_arr[0] : $maybe_arr;
     }
 
-    $d = new DateTime($data['_year'][0].'-'.$data['_month'][0].'-'.$data['_day'][0].' '.
-    	$data['_hour'][0].':'.$data['_minute'][0]);
+    $y = handle_array($all_meta['_end_year']);
+    $m = handle_array($all_meta['_end_month']);
+    $d = handle_array($all_meta['_end_day']);
+    $h = handle_array($all_meta['_end_hour']);
+    $min = handle_array($all_meta['_end_minute']);
+
+    $time_string = sprintf($format, $y, $m, $d, $h, $min);
+    $d = new DateTime($time_string);
+
     $now = new DateTime();
 
     return ($d > $now);
@@ -267,7 +274,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
 
     $new_post_id = wp_insert_post( $post );  
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
-    add_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida_ID, $new_post_id);
+    add_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida->ID, $new_post_id);
     _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
     return $new_post_id;
 }
