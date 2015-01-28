@@ -1432,11 +1432,11 @@ function gestisci_sfida_review( $content ){
     global $post;
     global $current_user;
 
-    $scroll_down = "<pre>Per favore leggi il racconto, in fondo potrai approvarlo, commentarlo o respongerlo.</pre> ";
-    $cbrns = " ";
-
     if($post->post_type == 'sfida_review' && $post->post_status == 'pending' &&
         ($post->post_author == $current_user->ID || current_user_can('manage_options'))){
+
+        $scroll_down = "<div class=\"update\"><p>Per favore leggi il racconto, in fondo potrai approvarlo, commentarlo o respingerlo.</p></div> ";
+        $cbrns = " ";
 
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
         $cbrns .=  "<div style=\"padding:10px;width:300px;\">";
@@ -1468,8 +1468,10 @@ function gestisci_sfida_review( $content ){
             });
         </script>
         <?php
+        return $scroll_down . $content . $cbrns;
     }
-    return $scroll_down . $content . $cbrns;
+    return $content;
+
 }
 
 add_action('the_content', 'gestisci_sfida_review');
@@ -1477,8 +1479,16 @@ add_action('the_content', 'gestisci_sfida_review');
 
 function get_change_sfida_review(){
 
+    global $current_user;
+
     $post_id = get_the_ID();
     $post = get_post($post_id);
+    if(!is_user_logged_in()) { return; }
+
+    if(! is_single() || ! $post->post_type == "sfida_review" || !$post->post_status == "pending" ||
+        ($post->post_author != $current_user->ID  && ! current_user_can('manage_options'))){
+        return;
+    }
 
     if(filter_input(INPUT_GET, 'approva', FILTER_SANITIZE_STRING) != NULL){
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
