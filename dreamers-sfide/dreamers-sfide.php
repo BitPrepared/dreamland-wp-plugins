@@ -1490,7 +1490,7 @@ function get_change_sfida_review(){
         return;
     }
 
-    if(filter_input(INPUT_GET, 'approva', FILTER_SANITIZE_STRING) != NULL){
+    if(isset($_GET['approva'])){
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
         $commento_input = filter_input(INPUT_POST, 'commento_capo_rep', FILTER_SANITIZE_STRING);
         if($commento_obbligatorio && ($commento_input == null || $commento_input == "")){
@@ -1498,13 +1498,17 @@ function get_change_sfida_review(){
                 "Verifica mancante", array('back_link' => true));
         }
         wp_publish_post($post);
-        add_post_meta($post->ID, 'commento_caporep', $commento_input);
+        if($commento_input != null && $commento_input != "") {
+            add_post_meta($post->ID, 'commento_caporep', $commento_input);
+        }
+        _log("Racconto approvato: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina Racconti sfide", "Approvato!");
-    } elseif (filter_input(INPUT_GET, 'respingi', FILTER_SANITIZE_STRING) != NULL) {
+    } elseif (isset($_GET['respingi'])) {
         $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
         $post->post_author = $squadriglia;
         $post->post_status = 'draft';
         wp_update_post($post);
+        _log("Racconto respinto: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
             "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.", "Respinto!");
     }

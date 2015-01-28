@@ -50,11 +50,16 @@ function is_sfida_alive($p){
     $min = handle_array($all_meta['_end_minute']);
 
     $time_string = sprintf($format, $y, $m, $d, $h, $min);
-    $d = new DateTime($time_string);
+    try {
+        $d = new DateTime($time_string);
+        $now = new DateTime();
+        return ($d > $now);
+    }
+    catch(Exception $e){
+        return false;
+    }
 
-    $now = new DateTime();
 
-    return ($d > $now);
 
 }
 
