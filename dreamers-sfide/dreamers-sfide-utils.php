@@ -34,14 +34,14 @@ abstract class StatusIscrizione {
     }
 }
 
+function handle_array($maybe_arr){
+    return is_array($maybe_arr) && ! is_string($maybe_arr) ? $maybe_arr[0] : $maybe_arr;
+}
+
 function is_sfida_alive($p){
 
     $all_meta = get_post_meta($p->ID);
     $format = "%s-%s-%s %s:%s";
-
-    function handle_array($maybe_arr){
-        return is_array($maybe_arr) && ! is_string($maybe_arr) ? $maybe_arr[0] : $maybe_arr;
-    }
 
     $y = handle_array($all_meta['_end_year']);
     $m = handle_array($all_meta['_end_month']);
@@ -141,9 +141,12 @@ function get_iscrizioni($user_id = NULL){
     if($user_id == NULL){
         $user_id = get_current_user_id();
     } else {
-        $aux = get_userdata( $user_id );
-        if($aux == false){
-            return array();
+        if(! $user_id instanceof WP_User){
+            $aux = get_userdata( $user_id );
+            if($aux == false){
+                _log("get_iscrizioni: Utente " . $user_id . " non trovato");
+                return array();
+            }
         }
     }
     $res = get_user_meta($user_id, '_iscrizioni', False);
@@ -220,7 +223,7 @@ function rtd_tagify($s){
     Ritorna l'id del resoconto in modo che si possa fare un redirect alla pagina 
     di modifica.
 */
-function rtd_completa_sfida($sfida, $user_id = NULL){
+function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
     
     if($user_id == NULL){
         $user_id = get_current_user_id();
@@ -239,7 +242,8 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
         $um['squadriglia'], 
         $um['groupDisplay'], 
         $um['zoneDisplay'], 
-        $um['regionDisplay']
+        $um['regionDisplay'],
+        $tiposfida
     );
 
     // Normalizzati
@@ -274,7 +278,9 @@ function rtd_completa_sfida($sfida, $user_id = NULL){
 
     $new_post_id = wp_insert_post( $post );  
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
+    add_post_meta($new_post_id, 'is_missione', ($is_sfida && $tiposfida != 'impresa'));
     add_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida->ID, $new_post_id);
+    add_post_meta($new_post_id, 'utente_originale', $user_id);
     _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
     return $new_post_id;
 }

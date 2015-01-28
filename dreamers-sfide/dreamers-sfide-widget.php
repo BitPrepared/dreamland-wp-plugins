@@ -84,3 +84,18 @@ class rtd_sfide_widget extends WP_Widget {
 		return $instance;
 	}
 } // Class wpb_widget ends here
+
+/*
+class Rtd_Sfide_Popolari extends WP_Widget {
+
+	public $query = "SELECT um.meta_value, p.post_title, count(*) ".
+		"FROM dr_usermeta AS um ".
+		"LEFT JOIN dr_posts AS p ON um.meta_value = p.ID ".
+		"WHERE um.meta_key LIKE '_iscrizioni' ".
+		"AND p.post_type LIKE 'sfida_event' ".
+		"GROUP BY meta_value ".
+		"ORDER BY count(*) DESC";
+
+
+}
+*/

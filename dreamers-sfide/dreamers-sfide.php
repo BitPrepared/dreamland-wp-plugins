@@ -84,11 +84,13 @@ function rtd_sfide_install(){
     
     $role = get_role('utente_eg');
     $role->add_cap('view_sfide_review');
+    $role->remove_cap('delete_sfide_review');
     $role->add_cap('insert_sfide_review');
     $role->add_cap('upload_files');
     
     $role = get_role('capo_reparto');
     $role->add_cap('view_sfide_review');
+    $role->remove_cap('delete_sfide_review');
     $role->add_cap('conferma_sfide_review');
     
     $role = get_role('editor');
@@ -208,7 +210,7 @@ function register_cpt_sfida_review() {
         'capabilities' => array(
             'edit_post'          => 'insert_sfide_review',
             'read_post'          => 'view_sfide_review',
-            'delete_post'        => 'insert_sfide_review',
+            'delete_post'        => 'delete_sfide_review',
             'edit_posts'         => 'insert_sfide_review',
             'edit_others_posts'  => 'update_core',
             'publish_posts'      => 'conferma_sfide_review',
@@ -885,7 +887,7 @@ function sfide_disponibili_dashboard_widget(){
         
         if(!is_sfida_alive($p)) { continue; }
         if(!is_sfida_for_me($p)) { continue; }
-
+        if(is_sfida_subscribed($p)) {continue; }
         $icons = get_icons_for_sfida($p);
 
         if ( check_validita_sfida($p) ) {
@@ -1128,8 +1130,8 @@ function mie_sfide_dashboard_widget(){
         $icons = get_icons_for_sfida($p);
 
         $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
-        $sfida_html .= $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n";
-        $sfida_html .= $sfida_html . "<td>" .  get_icons_html($icons) . "</td>";
+        $sfida_html .= "<td>". get_limit_sfida($p, $regioni) . "</td>\n";
+        $sfida_html .= "<td>" .  get_icons_html($icons) . "</td>";
         $sfida_html .= '<td>' . get_iscrizione_status($p) . '</td>';
         $sfida_html .= '<td>';
         $racc_id = get_racconto_sfida($current_user, $p->ID);
@@ -1236,10 +1238,51 @@ function remove_all_metas(){
         remove_meta_box('slugdiv', 'sfida_review', 'normal');
         remove_meta_box('tipologiesfidediv', 'sfida_review', 'side');
         remove_meta_box('racconti_sfide_meta', 'sfida_review', 'normal');
+        add_meta_box('istruzioni_racconto_eg', 'Istruzioni: leggere attentamente', 'istruzioni_racconto_eg_callback', 'sfida_review', 'above', 'high');
+    }
+
+    if($current_user->roles[0] == 'capo_reparto'){
+        remove_meta_box('slugdiv', 'sfida_review', 'normal');
+        remove_meta_box('tipologiesfidediv', 'sfida_review', 'side');
+        add_meta_box('istruzioni_racconto_cr', 'Istruzioni: leggere attentamente', 'istruzioni_racconto_cr_callback', 'sfida_review', 'above', 'high');
     }
 }
 
 add_action('add_meta_boxes', 'remove_all_metas');
+
+function istruzioni_racconto_eg_callback(){ ?>
+    <p>In questa pagina dovete inserire il resoconto della sfida: scrivete quello che avete fatto,
+        come è andata, ecc.. (una sorta di breve verifica), oltre a ciò dovete allegare foto, video,
+        documenti, ecc... ovvero tutto quello che vi è stato richiesto nella sfida.</p>
+
+    <p>Per caricare i files delle foto,del video ecc...  premete sul bottone <b>Aggiungi Media</b>, attenzione che
+        la dimensione dei files che andrete a caricare sul sito è limitata, quindi se i file che avete a disposizione
+         sono troppo grandi dovrete ridurli (immagini e video più piccoli o corti), e anche questo per qualcuno sarà un nuova sfida !
+        Se proprio non riuscite a ridurli, o se la sfida lo richiedesse, potete caricarli su un altra
+        piattforma (ma attenti ai diritti d'autore, al rispetto della privacy ecc..) potete
+        aggiungerli come link, scegliendo tra le opzioni che apparianno premendo il bottone Aggiung Media.</p>
+
+    <p>Una volta che avrete completato il resoconto premete il bottone <b>Racconto Completato</b> dopo di
+        ché verrà mandta una mail al vostro Capo Reparto per approvarne la condivisione.
+        Nota: una volta premuto il bottone non sarete più in grado di modificare il resoconto, potrà farlo il Capo Reparto.</p>
+    <?php }
+
+function istruzioni_racconto_cr_callback() { ?>
+    Istruzioni capo rep
+<?php }
+
+function foo_move_deck() {
+    # Get the globals:
+    global $post, $wp_meta_boxes;
+
+    # Output the "advanced" meta boxes:
+    do_meta_boxes( get_current_screen(), 'above', $post );
+
+    # Remove the initial "advanced" meta boxes:
+    unset($wp_meta_boxes['post']['above']);
+}
+
+add_action('edit_form_after_title', 'foo_move_deck');
 
 function sfida_review_admin_css_js() {
     global $current_user;
@@ -1273,6 +1316,21 @@ function sfida_review_admin_css_js() {
 }
 add_action('admin_head', 'sfida_review_admin_css_js');
 
+// Impedisce a chi non è loggato di vedere i resoconti sfida
+function tp_stop_guestes( $content ) {
+    global $post;
+
+    if ( $post->post_type == 'sfida_review' ) {
+        if ( !is_user_logged_in() ) {
+            $content = '<a href="'.  wp_login_url( get_permalink() ). '" title="Accedi"><h2>Accedi per poter vedere questo racconto.</h2></a>';
+        }
+    }
+
+    return $content;
+}
+
+add_filter( 'the_content', 'tp_stop_guestes' );
+
 
 /* GESTIONE TRANSIZIONE STATUS DEI RACCONTI SFIDA */
 
@@ -1291,28 +1349,36 @@ function rs_draft_to_pending( $post ){
             'meta_value' => $umeta['group'],
             'fields' => 'all'
         );
+
         $query = new WP_User_Query($qargs);
         $query_caporep = $query->get_results();
-        $caporep = $query_caporep->results[0];
+        $caporep = $query_caporep[0];
 
         $sfida_id = get_post_meta($post->ID, 'sfida', true);
         $sfida = get_post($sfida_id); 
 
         // manda una mail al capo reparto
-        $mail_obj_format = "%s";
         
-        $mail_body_format = "La %s ha completato il racconto della %s a cui si era iscritta!\n".
+        $mail_body_format = "La %s ha completato il racconto della sfida \"%s\" a cui si era iscritta!\n".
+            "Puoi vedere la sfida qui: " . get_permalink($sfida->ID) . " .\n".
              "Una volta completato il racconto, la squadriglia non può più modificarlo ".
              "e tu devi approvarlo prima che sia pubblicato (solo per gli utenti iscritti) " .
              "su Return to DreamLand.\n\n".
-             "Per vedere il racconto clicca qui: %s";
-        
+             "Per vedere e confermare il racconto clicca qui: %s";
+
+        // $preview_url = http://www.beta.returntodreamland.it/blog/?post_type=sfida_review&p=16&preview=true
+        $preview_url = add_query_arg(array(
+                'preview' => 'true',
+                'post_type' => 'sfida_review',
+                'p' => $post->ID
+            ),
+            get_site_url());
+
         wp_mail($caporep->user_email, 
-            sprintf($mail_obj_format, $post->post_title), 
-            sprintf($mail_body_format, $umeta['squadriglia'], $sfida->post_title, get_edit_post_link($post->id))
-        );
+            $post->post_title,
+            sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title, $preview_url));
         // cambia ownership del post
-        _log("Email inviata a " . $caporep->user_email);
+        _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
         
         wp_update_post(array('ID' => $post->ID, 'post_author' => $caporep->ID));
         
@@ -1323,30 +1389,144 @@ function rs_draft_to_pending( $post ){
 
 add_action('draft_to_pending', 'rs_draft_to_pending');
 
+/*
+add_filter('redirect_post_location', 'redirect_to_post_on_publish_or_save');
+function redirect_to_post_on_publish_or_save($location)
+{
+    if (isset($_POST['save']) || isset($_POST['publish'])) {
+        if (preg_match("/post=([0-9]*)/", $location, $match)) {
+            $pl = get_permalink($match[1]);
+            if ($pl) {
+                wp_redirect($pl);
+            }
+        }
+    }
+}
+*/
+
+// Prevent users from seeing others media and posts in edit
+function mypo_parse_query_useronly( $wp_query ) {
+    global $current_user, $pagenow;
+
+    if( !is_a( $current_user, 'WP_User') )
+        return;
+
+    if( (   'edit.php' != $pagenow ) &&
+        (   'upload.php' != $pagenow ) &&
+        ( ( 'admin-ajax.php' != $pagenow ) || ( $_REQUEST['action'] != 'query-attachments' ) ) ){
+        return;
+    }
+
+    if ( !current_user_can( 'delete_pages' ) ) {
+                $wp_query->set( 'author', $current_user->ID );
+            }
+}
+
+add_filter('parse_query', 'mypo_parse_query_useronly' );
+
 /* FINE GESTIONE TRANSIZIONE STATUS DEI RACCONTI SFIDA  */
+
+/* GESTIONE RACCONTO SFIDA LATO CAPO REPARTO */
+
+function gestisci_sfida_review( $post ){
+    global $post;
+    global $current_user;
+
+    if($post->post_type == 'sfida_review' &&
+        ($post->post_author == $current_user->ID || current_user_can('manage_options'))){
+
+        if(filter_input(INPUT_GET, 'approva', FILTER_SANITIZE_STRING) != NULL){
+            $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
+            $commento_input = filter_input(INPUT_POST, 'commento_capo_rep', FILTER_SANITIZE_STRING);
+            if($commento_obbligatorio && ($commento_input == null || $commento_input == "")){
+                wp_die("Devi inserire la verifica della staff perchè si tratta di una sfida missione.",
+                    "Verifica mancante", array('back_link' => true));
+            }
+            wp_publish_post($post);
+            add_post_meta($post->ID, 'commento_caporep', $commento_input);
+            wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina Racconti sfide", "Approvato!");
+        } elseif (filter_input(INPUT_GET, 'respingi', FILTER_SANITIZE_STRING) != NULL) {
+            $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
+            $post->post_author = $squadriglia;
+            $post->post_status = 'draft';
+            wp_update_post($post);
+            wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
+                "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.", "Respinto!");
+        }
+
+        $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
+        echo "<div>";
+        echo "<button id=\"approva\" class=\"btn btn-success\">Approva</button>";
+        echo "<button id=\"respingi\" class=\"btn btn-danger\">Respingi</button>";
+        echo $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
+        echo '<input type="textarea" name="commento_capo_rep" id="commento_capo_rep">';
+        echo "</div>";
+        ?>
+        <script>
+            jQuery.ready(function() {
+                jQuery('approva').on('click', function {
+                    res = confirm("Vuoi approvare il resoconto della squadriglia?");
+                    if(! res ) return;
+                    <?php if($commento_obbligatorio): ?>
+                    if($('commento_capo_rep').val() == ""){
+                        alert("Per le sfide di tipo missione è necessario che tu compili la verfica!");
+                        return;
+                    }
+                    <?php endif; ?>
+                    window.location = window.location + "&approva";
+                });
+                jQuery('respingi').on('click', function {
+                    res = confirm("Vuoi respingere il resoconto della squadriglia?");
+                    if(! res ) return;
+                    window.location = window.location + "&respingi";
+                });
+            });
+        </script>
+        <?php
+    }
+}
+
+add_action('the_content', 'gestisci_sfida_review');
+
+
+/* FINE GESTIONE RACCONTO SFIDA LATO CAPO REPARTO */
 
 /* GESTIONE ISCRIZIONI */
 
-function edit_iscrizioni($user_id){
-    if(current_user_can('edit_iscrizioni') && user_can($user_id, 'insert_sfide_review')) {
+function edit_iscrizioni($user){
+    if(current_user_can('edit_iscrizioni') && user_can($user, 'insert_sfide_review')) {
 
-        $iscrizioni = get_iscrizioni( $user_id );
+        $iscrizioni = get_iscrizioni( $user->ID );
 
         $all_sfide = get_posts( array( 'post_type' => 'sfida_event' ) );
 
         echo "<h2>Iscrizioni a sfide</h2><ul>";
+        echo "<h3>Sfide a cui è iscritto</h3>";
         foreach ( $all_sfide as $sfida ) {
             if ( is_sfida_subscribed( $sfida, $iscrizioni ) ) {
                 echo "<li>";
-                echo $sfida->post_title . " (" . get_iscrizione_status( $sfida, $user_id ) . ")";
+                echo $sfida->post_title . " (" . get_iscrizione_status( $sfida, $user->ID ) . ")";
                 echo "</li>";
             }
         }
         echo "</ul>";
+        echo "<div style=\"color:red; font-weight: bold; font-size: 14pt;\">Attenzione: questa maschera modifica i dati solo lato wordpress e non lato portal!</div>";
+
+        echo "<h3>Cancella iscrizione</h3>";
+                echo '<select name="cancella_sfida" id="cancella_sfida"> ';
+        echo '<option value=""></option>';
+        foreach ( $all_sfide as $sfida ) {
+            if ( is_sfida_subscribed( $sfida, $iscrizioni ) ) {
+                            echo '<option value="' . $sfida->ID . '">' . $sfida->post_title . " - " . $sfida->ID.  '</option>';
+            }
+        }
+        echo '</select>';
+
 
         echo "<h3>Nuova iscrizione</h3>";
         // echo '<input type="text" hidden="true" id="nuova_sfida_id" name="nuova_sfida_id">';
         echo '<select name="nuova_sfida" id="nuova_sfida"> ';
+        echo "<option value=\"\"></option>";
         foreach ( $all_sfide as $sfida ) {
             if ( is_sfida_alive( $sfida ) && is_sfida_for_me( $sfida ) && ! is_sfida_subscribed( $sfida, $iscrizioni ) ) {
                 echo '<option value="' . $sfida->ID . '">' . $sfida->post_title . '</option>';
@@ -1358,18 +1538,34 @@ function edit_iscrizioni($user_id){
 }
 add_action('edit_user_profile', 'edit_iscrizioni');
 
-function update_extra_profile_fields($user_id) {
+function get_iscrizioni_change($user_id) {
     if ( current_user_can('edit_user') && isset($_POST['nuova_sfida'])) {
-        $nuova_sfida = filter_input(FILTER_SANITIZE_STRING, $_POST['nuova_sifda']);
+        $nuova_sfida = filter_input(INPUT_POST, 'nuova_sfida', FILTER_SANITIZE_NUMBER_INT);
         if($nuova_sfida != ""){
             $sfida = get_post($nuova_sfida);
-            if($sfida == null){
-                throw new Exception("Nuova iscrizione: Sfida non trovata : " . $nuova_sfida);
+            if($sfida == null) {
+                echo "<div class=\"Error\">Impossibile iscrivere l'utente alla sfida ". $nuova_sfida.": sfida non esistente.</div>";
+                _log("Nuova iscrizione manuale: Sfida non trovata : " . $nuova_sfida);
+            } else {
+                rdt_iscrivi_utente_a_sfida($sfida, $user_id);
+                echo "<div class=\"Update\">Utente iscritto alla sfida ". $sfida->post_title. " (ID ". $nuova_sfida.").</div>";
+                _log("Iscritto manualmente utente " . $user_id . " alla sfida " . $nuova_sfida);
             }
-            rdt_iscrivi_utente_a_sfida($sfida,$user_id);
-            _log("Iscritto utente " . $user_id . " alla sfida " . $nuova_sfida);
         }
-
+        if ( current_user_can('edit_user') && isset($_POST['cancella_sfida'])) {
+            $nuova_sfida = filter_input(INPUT_POST, 'cancella_sfida', FILTER_SANITIZE_NUMBER_INT);
+            if($nuova_sfida != ""){
+                $sfida = get_post($nuova_sfida);
+                if($sfida == null){
+                    _log("Cancellazione iscrizione manuale: Sfida non trovata : " . $nuova_sfida);
+                    echo "<div class=\"Error\">Impossibile disiscrivere l'utente dalla sfida ". $nuova_sfida.": sfida non esistente.</div>";
+                } else {
+                    rtd_disiscrivi_utente_da_sfida($sfida->ID, $user_id);
+                    echo "<div class=\"Update\">Utente disiscritto dalla sfida ". $sfida->post_title. " (ID ". $nuova_sfida.").</div>";
+                    _log("Cancellato manualmente utente " . $user_id . " alla sfida " . $nuova_sfida);
+                }
+            }
+        }
     }
 }
 add_action('edit_user_profile_update', 'get_iscrizioni_change');
