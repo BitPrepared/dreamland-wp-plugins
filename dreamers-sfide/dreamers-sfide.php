@@ -89,9 +89,9 @@ function rtd_sfide_install(){
     $role->add_cap('upload_files');
     
     $role = get_role('capo_reparto');
-    $role->add_cap('view_sfide_review');
-    $role->remove_cap('delete_sfide_review');
-    $role->add_cap('conferma_sfide_review');
+    // $role->add_cap('view_sfide_review');
+    // $role->remove_cap('delete_sfide_review');
+    // $role->add_cap('conferma_sfide_review');
     
     $role = get_role('editor');
     $role->add_cap('insert_sfide');
@@ -1428,54 +1428,39 @@ add_filter('parse_query', 'mypo_parse_query_useronly' );
 
 /* GESTIONE RACCONTO SFIDA LATO CAPO REPARTO */
 
-function gestisci_sfida_review( $post ){
+function gestisci_sfida_review( $content ){
     global $post;
     global $current_user;
 
-    if($post->post_type == 'sfida_review' &&
+    $scroll_down = "<pre>Per favore leggi il racconto, in fondo potrai approvarlo, commentarlo o respongerlo.</pre> ";
+    $cbrns = " ";
+
+    if($post->post_type == 'sfida_review' && $post->post_status == 'pending' &&
         ($post->post_author == $current_user->ID || current_user_can('manage_options'))){
 
-        if(filter_input(INPUT_GET, 'approva', FILTER_SANITIZE_STRING) != NULL){
-            $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
-            $commento_input = filter_input(INPUT_POST, 'commento_capo_rep', FILTER_SANITIZE_STRING);
-            if($commento_obbligatorio && ($commento_input == null || $commento_input == "")){
-                wp_die("Devi inserire la verifica della staff perchè si tratta di una sfida missione.",
-                    "Verifica mancante", array('back_link' => true));
-            }
-            wp_publish_post($post);
-            add_post_meta($post->ID, 'commento_caporep', $commento_input);
-            wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina Racconti sfide", "Approvato!");
-        } elseif (filter_input(INPUT_GET, 'respingi', FILTER_SANITIZE_STRING) != NULL) {
-            $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
-            $post->post_author = $squadriglia;
-            $post->post_status = 'draft';
-            wp_update_post($post);
-            wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
-                "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.", "Respinto!");
-        }
-
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
-        echo "<div>";
-        echo "<button id=\"approva\" class=\"btn btn-success\">Approva</button>";
-        echo "<button id=\"respingi\" class=\"btn btn-danger\">Respingi</button>";
-        echo $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
-        echo '<input type="textarea" name="commento_capo_rep" id="commento_capo_rep">';
-        echo "</div>";
+        $cbrns .=  "<div style=\"padding:10px;width:300px;\">";
+        $cbrns .= "<button style=\"margin:10px\" id=\"approva\" class=\"btn btn-success\">Approva</button>";
+        $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Respingi</button>";
+        $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
+        $cbrns .= $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
+        $cbrns .= '</label><textarea class=\"form-control\" style=\"width:300px;height: 100px;\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
+        $cbrns .= "</div></div> ";
         ?>
         <script>
-            jQuery.ready(function() {
-                jQuery('approva').on('click', function {
-                    res = confirm("Vuoi approvare il resoconto della squadriglia?");
+            jQuery(document).ready(function() {
+                jQuery('#approva').on('click', function {
+                    var res = confirm("Vuoi approvare il resoconto della squadriglia?");
                     if(! res ) return;
                     <?php if($commento_obbligatorio): ?>
-                    if($('commento_capo_rep').val() == ""){
+                    if(jQuery('#commento_capo_rep').val() == ""){
                         alert("Per le sfide di tipo missione è necessario che tu compili la verfica!");
                         return;
                     }
                     <?php endif; ?>
                     window.location = window.location + "&approva";
                 });
-                jQuery('respingi').on('click', function {
+                jQuery('#respingi').on('click', function {
                     res = confirm("Vuoi respingere il resoconto della squadriglia?");
                     if(! res ) return;
                     window.location = window.location + "&respingi";
@@ -1484,10 +1469,38 @@ function gestisci_sfida_review( $post ){
         </script>
         <?php
     }
+    return $scroll_down . $content . $cbrns;
 }
 
 add_action('the_content', 'gestisci_sfida_review');
 
+
+function get_change_sfida_review(){
+
+    $post_id = get_the_ID();
+    $post = get_post($post_id);
+
+    if(filter_input(INPUT_GET, 'approva', FILTER_SANITIZE_STRING) != NULL){
+        $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
+        $commento_input = filter_input(INPUT_POST, 'commento_capo_rep', FILTER_SANITIZE_STRING);
+        if($commento_obbligatorio && ($commento_input == null || $commento_input == "")){
+            wp_die("Devi inserire la verifica della staff perchè si tratta di una sfida missione.",
+                "Verifica mancante", array('back_link' => true));
+        }
+        wp_publish_post($post);
+        add_post_meta($post->ID, 'commento_caporep', $commento_input);
+        wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina Racconti sfide", "Approvato!");
+    } elseif (filter_input(INPUT_GET, 'respingi', FILTER_SANITIZE_STRING) != NULL) {
+        $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
+        $post->post_author = $squadriglia;
+        $post->post_status = 'draft';
+        wp_update_post($post);
+        wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
+            "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.", "Respinto!");
+    }
+}
+
+add_action('wp_head', 'get_change_sfida_review');
 
 /* FINE GESTIONE RACCONTO SFIDA LATO CAPO REPARTO */
 
