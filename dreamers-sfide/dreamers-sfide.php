@@ -1460,8 +1460,8 @@ function gestisci_sfida_review( $content ){
                     <?php endif; ?>
                     window.location = window.location + "&approva";
                 });
-                jQuery('#respingi').on('click', function {
-                    res = confirm("Vuoi respingere il resoconto della squadriglia?");
+                jQuery('#respingi').on('click', function () {
+                    var res = confirm("Vuoi respingere il resoconto della squadriglia?");
                     if(! res ) return;
                     window.location = window.location + "&respingi";
                 });
