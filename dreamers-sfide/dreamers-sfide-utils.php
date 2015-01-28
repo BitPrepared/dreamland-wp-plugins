@@ -234,20 +234,17 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
         $user_id = get_current_user_id();
     }
     $um = get_user_meta($user_id);
-    if(is_array($um['squadriglia'])){
-        $sq = $um['squadriglia'][0];
-    } else {
-        $sq = $um['squadriglia'];
-    }
+    $sq = handle_array($um['squadriglia']);
+    $gr = handle_array($um['groupDisplay']);
 
     set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
 
     // I tag associati al resoconto
     $post_tags_values = array( 
-        $um['squadriglia'], 
-        $um['groupDisplay'], 
-        $um['zoneDisplay'], 
-        $um['regionDisplay'],
+        $sq,
+        $gr,
+        handle_array($um['zoneDisplay']),
+        handle_array($um['regionDisplay']),
         $tiposfida
     );
 
@@ -256,9 +253,8 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
 
     $post = array(
       'post_content'   => "", // The full text of the post.
-      // 'post_name'      => "", // The name (slug) for your post
+      'post_name'      => rtd_tagify("Racconto " . $sq . " " . $gr ." sfida " . $sfida->post_title), // The name (slug) for your post
       'post_title'     => "La sq. " . $sq . " ha completato la sfida " . $sfida->post_title, // The title of your post.
-      // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',
       'post_type'      => 'sfida_review',

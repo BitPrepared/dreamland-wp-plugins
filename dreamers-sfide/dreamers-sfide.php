@@ -1381,7 +1381,7 @@ function rs_draft_to_pending( $post ){
         _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
         
         wp_update_post(array('ID' => $post->ID, 'post_author' => $caporep->ID));
-        
+        wp_redirect( add_query_arg( 'racconto_completato', '1' ,get_admin_url()));
 
         // setta manualmente
     }
@@ -1394,15 +1394,24 @@ add_filter('redirect_post_location', 'redirect_to_post_on_publish_or_save');
 function redirect_to_post_on_publish_or_save($location)
 {
     if (isset($_POST['save']) || isset($_POST['publish'])) {
-        if (preg_match("/post=([0-9]*)/", $location, $match)) {
-            $pl = get_permalink($match[1]);
-            if ($pl) {
-                wp_redirect($pl);
-            }
-        }
+        wp_redirect( add_query_arg( 'racconto_completato', '1' ,get_admin_url()));
     }
 }
 */
+add_action('admin_notices', 'review_created_admin_notice');
+
+function review_created_admin_notice()
+{
+    global $pagenow;
+
+    // Only show this message on the admin dashboard and if asked for
+    if ('index.php' === $pagenow && ! empty($_GET['racconto_completato']))
+    {
+        echo '<div class="updated"><p>Hai completato il racconto della sfida! Aspetta ora che '.
+            'il tuo caporeparto lo approvi perchè sia pubblicato nella pagina dei racconti!</p></div>';
+    }
+}
+
 
 // Prevent users from seeing others media and posts in edit
 function mypo_parse_query_useronly( $wp_query ) {
