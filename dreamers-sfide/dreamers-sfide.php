@@ -1449,7 +1449,7 @@ function gestisci_sfida_review( $content ){
         ?>
         <script>
             jQuery(document).ready(function() {
-                jQuery('#approva').on('click', function {
+                jQuery('#approva').on('click', function () {
                     var res = confirm("Vuoi approvare il resoconto della squadriglia?");
                     if(! res ) return;
                     <?php if($commento_obbligatorio): ?>
