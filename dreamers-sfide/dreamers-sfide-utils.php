@@ -254,7 +254,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
     $post_slug = "racconto-" . rtd_tagify($sq) . "-" . rtd_tagify($gr) ."-sfida-" . $sfida->post_slug;
     $post = array(
       'post_content'   => "", // The full text of the post.
-      'post_title'     => "La sq. " . $sq . " ha completato la sfida " . $sfida->post_title, // The title of your post.
+      'post_title'     => $sq . " " . $gr . ": " . $sfida->post_title, // The title of your post.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',
       'post_type'      => 'sfida_review',
@@ -285,7 +285,6 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
 
     $created_post = get_post($new_post_id);
     $created_post->post_name = wp_unique_post_slug($post_slug, $new_post_id, 'draft','sfida_review', 0);
-
 
     _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
     return $new_post_id;
@@ -369,10 +368,37 @@ function get_racconto_sfida($user_id, $sfida_id){
     return false;
 }
 
+/**
+ * @param $post post object
+ * @param $user user object or ID
+ * @return bool true se l'utente è autorizzato, false altrimenti
+ */
+function can_see_caporeparto_comments($post, $user){
+
+    if(!isset($user->id)) {
+        $user = get_user_by('id', $user);
+    }
+
+    if(user_can($user,'manage_options')) return true;
+
+    $caporep_id = get_post_meta($post->ID, 'caporeparto', true);
+    // $caporep = get_user_by('id', $caporep_id);
+    $caporep_data = get_user_meta($caporep_id);
+
+    $ruolo = $user->roles[0];
+    switch($ruolo){
+        case 'editor': return true;
+        case 'capo_reparto' : return ($caporep_id == $user->ID);
+        case 'referente_regionale':
+            $regione = get_user_meta($user->ID, 'region');
+            return $regione == $caporep_data['region'];
+        default: return false;
+    }
+}
+
 function get_icons_for_sfida($p){
 	    $terms = wp_get_object_terms($p->ID, 'tipologiesfide');
         $icons = array();
-        $has_shield = false;
 
         // http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
         // in particolare http://codex.wordpress.org/Function_Reference/plugin_dir_url

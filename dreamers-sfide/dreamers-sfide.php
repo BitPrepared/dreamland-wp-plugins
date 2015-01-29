@@ -1449,7 +1449,7 @@ function gestisci_sfida_review( $content ){
         $cbrns = " ";
 
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
-        $cbrns .=  "<div style=\"padding:10px;width:300px;\">";
+        $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
         $cbrns .= $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
         $cbrns .= '</label><textarea class=\"form-control\" style=\"width:300px;height: 100px;\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
@@ -1519,14 +1519,20 @@ function get_change_sfida_review(){
         $def_slug = wp_unique_post_slug($post->post_name, $post_id, 'publish','sfida_review', 0);
         _log("Old slug per racconto " . $post->ID . ":" . $post->post_name ." e nuovo " . $def_slug );
         $post->post_name = $def_slug;
+
+        $new_owner = get_user_by('login', 'raccontisfida');
+        $caporep_id = $post->post_author;
+        $post->post_author = $new_owner->ID;
         wp_update_post($post);
+
+        add_post_meta($post->ID, 'caporeparto', $caporep_id);
 
         if($commento_input != null && $commento_input != "") {
             add_post_meta($post->ID, 'commento_caporep', date("y-m-d H:m") . " " . $commento_input, false);
         }
 
         _log("Racconto approvato: racconto " . $post->ID . " utente " . $current_user->ID);
-        wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina <a href=\"" . get_site_url() . "" . "\">Racconti sfide</a>", "Approvato!");
+        wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina <a href=\"" . get_post_type_archive_link('sfida_review'). "\">Racconti sfide</a>", "Approvato!");
     } elseif (isset($_GET['respingi'])) {
         $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
         $user_sq = get_userdata($squadriglia);
@@ -1547,6 +1553,37 @@ function get_change_sfida_review(){
 add_action('wp_head', 'get_change_sfida_review');
 
 /* FINE GESTIONE RACCONTO SFIDA LATO CAPO REPARTO */
+
+/* MOSTRA COMMENTI CAPOREP AL RACCONTO */
+
+function mostra_commenti_caporep(){
+
+    global $current_user;
+
+    $post_id = get_the_ID();
+    $post = get_post($post_id);
+    if(!is_user_logged_in()) { return; }
+
+    if(! is_single() || ! $post->post_type == "sfida_review" ){
+        return;
+    }
+
+    if(can_see_caporep_comments($post,$current_user)){
+        $comments = get_post_meta($post->ID, 'commento_caporep', false);
+        echo "<div class=\"widget-title\" style=\"font-size: 12pt\">";
+        if(count($comments) == 0){
+            echo "<strong>Non ci sono commenti inseriti dal caporeparto</strong>";
+        } else {
+            echo "<strong>Ecco i commenti inseriti dal caporeparto</strong>";
+            echo implode('<br>', $comments);
+        }
+        echo "<div>";
+    }
+}
+add_action('wp_head', 'mostra_commenti_caporep');
+/* FINE MOSTRA COMMENTI CAPOREP AL RACCONTO */
+
+
 
 /* GESTIONE ISCRIZIONI */
 
