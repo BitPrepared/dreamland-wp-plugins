@@ -1381,9 +1381,10 @@ function rs_draft_to_pending( $post ){
         _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
         
         wp_update_post(array('ID' => $post->ID, 'post_author' => $caporep->ID));
+        _log("Utente ha completato il racconto " . $post->ID);
         wp_redirect( add_query_arg( 'racconto_completato', '1' ,get_admin_url()));
+        exit();
 
-        // setta manualmente
     }
 }
 
@@ -1512,10 +1513,18 @@ function get_change_sfida_review(){
             wp_die("Devi inserire la verifica della staff perchè si tratta di una sfida missione.",
                 "Verifica mancante", array('back_link' => true));
         }
+
         wp_publish_post($post);
+
+        $def_slug = wp_unique_post_slug($post->post_name, $post_id, 'publish','sfida_review', 0);
+        _log("Old slug per racconto " . $post->ID . ":" . $post->post_name ." e nuovo " . $def_slug );
+        $post->post_name = $def_slug;
+        wp_update_post($post);
+
         if($commento_input != null && $commento_input != "") {
-            add_post_meta($post->ID, 'commento_caporep', $commento_input);
+            add_post_meta($post->ID, 'commento_caporep', date("y-m-d H:m") . " " . $commento_input, false);
         }
+
         _log("Racconto approvato: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina <a href=\"" . get_site_url() . "" . "\">Racconti sfide</a>", "Approvato!");
     } elseif (isset($_GET['respingi'])) {

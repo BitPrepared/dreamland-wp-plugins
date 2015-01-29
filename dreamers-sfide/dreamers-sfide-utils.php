@@ -211,7 +211,7 @@ function rtd_tagify($s){
     
     $r = strtolower($s);
 
-    $r = trim($s);
+    $r = trim($r);
 
     // wp sanitize title (used to create slugs). see http://codex.wordpress.org/Function_Reference/sanitize_title
     // Removes special characters and accents
@@ -221,6 +221,7 @@ function rtd_tagify($s){
     // Removes whitespaces and changes to dashes
     $r = sanitize_title_with_dashes($r);
 
+    _log("Taggified " . $s . " to " . $r );
     return $r;
 }
 
@@ -250,10 +251,9 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
 
     // Normalizzati
     $post_tags = array_map("rtd_tagify", $post_tags_values);
-
+    $post_slug = "racconto-" . rtd_tagify($sq) . "-" . rtd_tagify($gr) ."-sfida-" . $sfida->post_slug;
     $post = array(
       'post_content'   => "", // The full text of the post.
-      'post_name'      => "racconto-" . rtd_tagify($sq) . "-" . rtd_tagify($gr) ."sfida-" . $sfida->post_slug, // The name (slug) for your post
       'post_title'     => "La sq. " . $sq . " ha completato la sfida " . $sfida->post_title, // The title of your post.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',
@@ -282,6 +282,11 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
     add_post_meta($new_post_id, 'is_missione', ($is_sfida && $tiposfida != 'impresa'));
     add_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida->ID, $new_post_id);
     add_post_meta($new_post_id, 'utente_originale', $user_id);
+
+    $created_post = get_post($new_post_id);
+    $created_post->post_name = wp_unique_post_slug($post_slug, $new_post_id, 'draft','sfida_review', 0);
+
+
     _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
     return $new_post_id;
 }
