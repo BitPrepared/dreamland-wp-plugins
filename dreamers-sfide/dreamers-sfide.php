@@ -1527,8 +1527,11 @@ function get_change_sfida_review(){
 
         add_post_meta($post->ID, 'caporeparto', $caporep_id);
 
+        _log(print_r($commento_input) . "\n\t" . print_r($_POST['commento_capo_rep']));
         if($commento_input != null && $commento_input != "") {
+            _log("Aggiungo comemnto caporep -" . $commento_input );
             add_post_meta($post->ID, 'commento_caporep', date("y-m-d H:m") . " " . $commento_input, false);
+            _log("Aggiungo comemnto caporep -" . $commento_input );
         }
 
         _log("Racconto approvato: racconto " . $post->ID . " utente " . $current_user->ID);
@@ -1571,7 +1574,7 @@ function mostra_commenti_caporep($content){
 
     if(can_see_caporep_comments($post, $current_user)){
         $comments = get_post_meta($post->ID, 'commento_caporep', false);
-        $res .= "<div class=\"widget-title\" style=\"font-size: 12pt\">";
+        $res .= "<div class=\"widget-title\" style=\"font-size: 12pt; border:1px solid #a9a9a9; border-radius: 5px\">";
         if(count($comments) == 0){
             $res .= "<strong>Non ci sono commenti inseriti dal caporeparto</strong>";
         } else {
