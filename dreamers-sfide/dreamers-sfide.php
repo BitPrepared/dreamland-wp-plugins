@@ -1556,7 +1556,7 @@ add_action('wp_head', 'get_change_sfida_review');
 
 /* MOSTRA COMMENTI CAPOREP AL RACCONTO */
 
-function mostra_commenti_caporep(){
+function mostra_commenti_caporep($content){
 
     global $current_user;
 
@@ -1567,20 +1567,22 @@ function mostra_commenti_caporep(){
     if(! is_single() || ! $post->post_type == "sfida_review" ){
         return;
     }
+    $res = " ";
 
-    if(can_see_caporep_comments($post,$current_user)){
+    if(can_see_caporep_comments($post, $current_user)){
         $comments = get_post_meta($post->ID, 'commento_caporep', false);
-        echo "<div class=\"widget-title\" style=\"font-size: 12pt\">";
+        $res .= "<div class=\"widget-title\" style=\"font-size: 12pt\">";
         if(count($comments) == 0){
-            echo "<strong>Non ci sono commenti inseriti dal caporeparto</strong>";
+            $res .= "<strong>Non ci sono commenti inseriti dal caporeparto</strong>";
         } else {
-            echo "<strong>Ecco i commenti inseriti dal caporeparto</strong>";
-            echo implode('<br>', $comments);
+            $res .= "<strong>Ecco i commenti inseriti dal caporeparto</strong>";
+            $res .= implode('<br>', $comments);
         }
-        echo "<div>";
+        $res .= "<div>";
     }
+    return $content . $res;
 }
-add_action('wp_head', 'mostra_commenti_caporep');
+add_action('the_content', 'mostra_commenti_caporep');
 /* FINE MOSTRA COMMENTI CAPOREP AL RACCONTO */
 
 

@@ -373,13 +373,15 @@ function get_racconto_sfida($user_id, $sfida_id){
  * @param $user user object or ID
  * @return bool true se l'utente è autorizzato, false altrimenti
  */
-function can_see_caporeparto_comments($post, $user){
+function can_see_caporep_comments($post, $user){
 
-    if(!isset($user->id)) {
+    if(!isset($user->ID)) {
         $user = get_user_by('id', $user);
     }
 
-    if(user_can($user,'manage_options')) return true;
+    if(user_can($user,'manage_options')) {
+        return true;
+    }
 
     $caporep_id = get_post_meta($post->ID, 'caporeparto', true);
     // $caporep = get_user_by('id', $caporep_id);
