@@ -1445,14 +1445,20 @@ function gestisci_sfida_review( $content ){
     if($post->post_type == 'sfida_review' && $post->post_status == 'pending' &&
         ($post->post_author == $current_user->ID || current_user_can('manage_options'))){
 
-        $scroll_down = "<div class=\"update\"><p>Per favore leggi il racconto, in fondo potrai approvarlo, commentarlo o respingerlo.</p></div> ";
+        $scroll_down = "<div style=\"font-size: 12pt; border:1px solid #a9a9a9; border-radius: 5px;margin:15px\"><p>".
+            " Leggi il racconto fatto dalla Squadiglia, valuta se è veriterio".
+            " e se può esere condiviso e diventare visibile a gli altri utenti di dreamland, in fondo alla pagina".
+            " puoi eventualmente aggiungere i tuo commenti (non saranno visibii da gli eg, e non verranno condivisi),".
+            " nel caso di una missione assegnata dallo staff è necessario scrivere nella sezione dei commenti una".
+            " breve relazione che ci spieghi il motivo per cui avete assegnato quella specifica missione a".
+            " quegli eg e la vostra verifica su come è andata.</p></div> ";
         $cbrns = " ";
 
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
         $cbrns .= $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
-        $cbrns .= '</label><textarea class=\"form-control\" style=\"width:300px;height: 100px;\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
+        $cbrns .= '</label><textarea class=\"form-control\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
         $cbrns .= "</div>";
         $cbrns .= "<button style=\"margin:10px\" id=\"approva\" class=\"btn btn-success\">Approva</button>";
         $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
@@ -1574,14 +1580,14 @@ function mostra_commenti_caporep($content){
 
     if(can_see_caporep_comments($post, $current_user)){
         $comments = get_post_meta($post->ID, 'commento_caporep', false);
-        $res .= "<div class=\"widget-title\" style=\"font-size: 12pt; border:1px solid #a9a9a9; border-radius: 5px\">";
+        $res .= "<div style=\"font-size: 12pt; border:1px solid #a9a9a9; border-radius: 5px; margin:15px\">";
         if(count($comments) == 0){
             $res .= "<strong>Non ci sono commenti inseriti dal caporeparto</strong>";
         } else {
             $res .= "<strong>Ecco i commenti inseriti dal caporeparto</strong>";
             $res .= implode('<br>', $comments);
         }
-        $res .= "<div>";
+        $res .= "</div>";
     }
     return $content . $res;
 }
