@@ -1359,24 +1359,28 @@ function rs_draft_to_pending( $post ){
 
         // manda una mail al capo reparto
         
-        $mail_body_format = "La %s ha completato il racconto della sfida \"%s\" a cui si era iscritta!\n".
-            "Puoi vedere la sfida qui: " . get_permalink($sfida->ID) . " .\n".
+        $mail_body_format = "La sq. %s ha completato il racconto della sfida \"%s\" a cui si era iscritta!\n\n".
+            "Per vedere e confermare il racconto, accedi con il tuo utente al sito,".
+            "vai alla tua bacheca e nel widget delle sfide che segui potrai trovare il racconto.".
+            "Se non ricordi il testo della sfida clicca qui: " . get_permalink($sfida->ID) . " .\n\n".
              "Una volta completato il racconto, la squadriglia non può più modificarlo ".
-             "e tu devi approvarlo prima che sia pubblicato (solo per gli utenti iscritti) " .
-             "su Return to DreamLand.\n\n".
-             "Per vedere e confermare il racconto clicca qui: %s";
+             "e tu devi approvarlo prima che sia condiviso e visibile (ma solo agli utenti iscritti al sito).\n\n".
+             "Lo Staff RTD\n\n";
 
         // $preview_url = http://www.beta.returntodreamland.it/blog/?post_type=sfida_review&p=16&preview=true
-        $preview_url = add_query_arg(array(
+        /*$preview_url = add_query_arg(array(
                 'preview' => 'true',
                 'post_type' => 'sfida_review',
                 'p' => $post->ID
             ),
             get_site_url());
+        */
+        // La preview è disabilitata perchè non si può controllare se l'utente ha eseguito l'accesso
+        // Nel caso in cui l'utente non sia loggato riceve un errore 404
 
         wp_mail($caporep->user_email, 
             $post->post_title,
-            sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title, $preview_url));
+            sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title));
         // cambia ownership del post
         _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
         
@@ -1457,8 +1461,8 @@ function gestisci_sfida_review( $content ){
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
-        $cbrns .= $commento_obbligatorio ? 'Verifica della missione: (Necessaria)' : 'Commento: (Facoltativo)';
-        $cbrns .= '</label><textarea class=\"form-control\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
+        $cbrns .= $commento_obbligatorio ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
+        $cbrns .= '</label> <textarea class=\"form-control\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
         $cbrns .= "</div>";
         $cbrns .= "<button style=\"margin:10px\" id=\"approva\" class=\"btn btn-success\">Approva</button>";
         $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
@@ -1548,9 +1552,9 @@ function get_change_sfida_review(){
         $post->post_author = $squadriglia;
         $post->post_status = 'draft';
         wp_mail($user_sq->user_email, "Il racconto della sfida" . $post->post_title . " è da sistemare",
-            "Ciao,\nIl tuo caporeparto ha visto il racconto sfida che hai mandato e ha trovato".
-            "qualcosa da migliorare. Per favore parla direttamente con lui/lei e modificalo nuovamente.".
-            "Lo puoi trovare nel menu della bacheca alla voce 'Racconti Sfida");
+            "Ciao,\nIl tuo caporeparto ha visto il racconto sfida che hai mandato e ha".
+            " trovato qualcosa da migliorare. Parla direttamente con lui/lei e modificalo nuovamente.".
+            " Puoi tovare il racconto nel menu della bacheca alla voce 'Racconti Sfida.\n\nLo Staff RTD");
         _log("Inviata email per nuovo resoconto alla sq " . $squadriglia . " indirizzo " . $user_sq->user_email);
         wp_update_post($post);
         _log("Racconto respinto: racconto " . $post->ID . " utente " . $current_user->ID);
