@@ -1136,7 +1136,14 @@ function mie_sfide_dashboard_widget(){
         $sfida_html .= '<td>';
         $racc_id = get_racconto_sfida($current_user, $p->ID);
         if($racc_id){
-            $sfida_html .= '<a href="' . get_permalink($racc_id). '">Vedi</a><a href="'. get_edit_post_link($racc_id).'">Modifica</a>';    
+            $racc = get_post($racc_id);
+            if($racc->post_status == 'publish'){
+                $sfida_html .= '<a href="' . get_permalink($racc_id). '">Vedi</a>';
+            } elseif($racc->post_status == 'draft'){
+                $sfida_html .= '"<a href="'. get_edit_post_link($racc_id).'">Modifica</a>';
+            } else {
+                $sfida_html .= "In revisione";
+            }
         }
         $sfida_html .= '</td>';
         array_push($printout, $sfida_html);
