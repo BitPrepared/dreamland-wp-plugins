@@ -1450,7 +1450,8 @@ function gestisci_sfida_review( $content ){
     if($post->post_type == 'sfida_review' && $post->post_status == 'pending' &&
         ($post->post_author == $current_user->ID || current_user_can('manage_options'))){
 
-        $scroll_down = "<div style=\"font-size: 12pt; border:1px solid #a9a9a9; border-radius: 5px;margin:15px\"><p>".
+        $scroll_down = "<div class=\"bs-callout bs-callout-primary\"><p>".
+            "<h4>Verifica il Racconto</h4>".
             " Leggi il racconto fatto dalla Squadiglia, valuta se è veriterio".
             " e se può esere condiviso e diventare visibile a gli altri utenti di dreamland, in fondo alla pagina".
             " puoi eventualmente aggiungere i tuo commenti (non saranno visibii da gli eg, e non verranno condivisi),".
@@ -1464,7 +1465,7 @@ function gestisci_sfida_review( $content ){
         $cbrns .=  "<form id=\"manda-commento\" action=\"\">";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
         $cbrns .= $commento_obbligatorio ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
-        $cbrns .= '</label> <textarea class=\"form-control\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
+        $cbrns .= '</label> <textarea class=\"form-control\" style=\"width:100%\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
         $cbrns .= '<input type="hidden" id="verifica" name="verifica">';
         $cbrns .= "</div>";
         $cbrns .= "</form>";
@@ -1591,12 +1592,12 @@ function mostra_commenti_caporep($content){
 
     if(can_see_caporep_comments($post, $current_user)){
         $comments = get_post_meta($post->ID, 'commento_caporep', false);
-        $res .= "<div style=\"font-size: 12pt; border:1px solid #a9a9a9; border-radius: 5px; margin:15px\">";
+        $res .= "<div class=\"bs-callout bs-callout-default\">";
+        $res .= "<h4>Commenti del Capo Reparto</h4>";
         if(count($comments) == 0){
-            $res .= "<strong>Non ci sono commenti inseriti dal caporeparto</strong>";
+            $res .= "Non ci sono commenti inseriti dal caporeparto";
         } else {
-            $res .= "<strong>Ecco i commenti inseriti dal caporeparto</strong>";
-            $res .= implode('<br>', $comments);
+            $res .= implode('<br>\n', $comments);
         }
         $res .= "</div>";
     }
