@@ -1469,8 +1469,8 @@ function gestisci_sfida_review( $content ){
 
         $commento_obbligatorio = ('true' == get_post_meta($post->ID, 'is_missione', true));
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
-        $cbrns .=  "<form id=\"manda-commento\" action=\"\">";
-        $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
+        $cbrns .=  '<form id="manda-commento" action="' . $myurl . '" method="post">';
+        $cbrns .= '<div class="form-group"><label for="commento_capo_rep">';
         $cbrns .= $commento_obbligatorio ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
         $cbrns .= '</label> <textarea class=\"form-control\" style=\"width:100%\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
         $cbrns .= '<input type="hidden" id="verifica" name="verifica">';
@@ -1487,6 +1487,7 @@ function gestisci_sfida_review( $content ){
         ?>
         <script>
             jQuery(document).ready(function() {
+                jQuery('#manda-commento').action(window.location);
                 jQuery('#approva').on('click', function () {
                     var res = confirm("<?= $testo_conferma_approva ?>");
                     if(! res ) return;
