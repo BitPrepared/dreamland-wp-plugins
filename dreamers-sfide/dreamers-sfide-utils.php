@@ -16,6 +16,9 @@ abstract class StatusIscrizione {
     /* Disiscrizione da parte dell'utente */
     const Annullata = 'Annullata';
 
+    /* Sfida conclusa ma non superata */
+    const NonSuperata = 'Non superata';
+
     /* Restitisce la costante a partire da una string 
        Nota: controllare che il risultato non sia null
     */
@@ -25,12 +28,13 @@ abstract class StatusIscrizione {
             case 'Conclusa': return StatusIscrizione::Completata;
             case 'Approvata': return StatusIscrizione::Approvata;
             case 'Annullata': return StatusIscrizione::Annullata;
+            case 'Non superata' : return StatusIscrizione::NonSuperata;
             default: return NULL;
         }
     }
 
     function as_array(){
-        return array(Richiesta, Completata, Approvata, Annullata);
+        return array(Richiesta, Completata, Approvata, Annullata, NonSuperata);
     }
 }
 
@@ -58,8 +62,6 @@ function is_sfida_alive($p){
     catch(Exception $e){
         return false;
     }
-
-
 
 }
 
@@ -108,7 +110,6 @@ function is_sfida_for_me($p, $debug=false, $user_id = null){
 	}
 
 	if(!$is_admitted){
-        _log('Permessi insufficienti per iscriversi');
 		return false;
 	}
 
@@ -229,7 +230,7 @@ function rtd_tagify($s){
     Ritorna l'id del resoconto in modo che si possa fare un redirect alla pagina 
     di modifica.
 */
-function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
+function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $superata){
     
     if($user_id == NULL){
         $user_id = get_current_user_id();
@@ -237,6 +238,12 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
     $um = get_user_meta($user_id);
     $sq = handle_array($um['squadriglia']);
     $gr = handle_array($um['groupDisplay']);
+
+    if( $superata === 'false'){
+        set_iscrizione_status($sfida, StatusIscrizione::NonSuperata, $user_id);
+
+        return -1;
+    }
 
     set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
 
