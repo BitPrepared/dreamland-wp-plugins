@@ -1460,10 +1460,13 @@ function gestisci_sfida_review( $content ){
 
         $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
+        $cbrns .=  "<form id=\"manda-commento\" action=\"\">";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
         $cbrns .= $commento_obbligatorio ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
         $cbrns .= '</label> <textarea class=\"form-control\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
+        $cbrns .= '<input type="hidden" id="verifica" name="verifica">';
         $cbrns .= "</div>";
+        $cbrns .= "</form>";
         $cbrns .= "<button style=\"margin:10px\" id=\"approva\" class=\"btn btn-success\">Approva</button>";
         $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
         $cbrns .= "</div> ";
@@ -1484,12 +1487,14 @@ function gestisci_sfida_review( $content ){
                         return;
                     }
                     <?php endif; ?>
-                    window.location = window.location + "&approva";
+                    jQuery('#verifica').val('Approva');
+                    jQuery('#manda-commento').submit();
                 });
                 jQuery('#respingi').on('click', function () {
                     var res = confirm("<?= $test_conferma_respingi ?>");
                     if(! res ) return;
-                    window.location = window.location + "&respingi";
+                    jQuery('#verifica').val('Respingi');
+                    jQuery('#manda-commento').submit();
                 });
             });
         </script>
@@ -1512,12 +1517,14 @@ function get_change_sfida_review(){
     if(!is_user_logged_in()) { return; }
 
     if(! is_single() || ! $post->post_type == "sfida_review" || !$post->post_status == "pending" ||
-        ($post->post_author != $current_user->ID  && ! current_user_can('manage_options'))){
+        ($post->post_author != $current_user->ID  && ! current_user_can('manage_options')) || !isset($_POST['verifica'])){
         return;
     }
 
-    if(isset($_GET['approva'])){
-        $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
+    $verifica = filter_input(INPUT_POST, 'verifica', FILTER_SANITIZE_STRING);
+
+    if( $verifica == 'Approva' ){
+        $commento_obbligatorio = ( 'true' == get_post_meta($post->ID, 'is_missione', true) ) ;
         $commento_input = filter_input(INPUT_POST, 'commento_capo_rep', FILTER_SANITIZE_STRING);
         if($commento_obbligatorio && ($commento_input == null || $commento_input == "")){
             wp_die("Devi inserire la verifica della staff perchè si tratta di una sfida missione.",
@@ -1527,7 +1534,6 @@ function get_change_sfida_review(){
         wp_publish_post($post);
 
         $def_slug = wp_unique_post_slug($post->post_name, $post_id, 'publish','sfida_review', 0);
-        _log("Old slug per racconto " . $post->ID . ":" . $post->post_name ." e nuovo " . $def_slug );
         $post->post_name = $def_slug;
 
         $new_owner = get_user_by('login', 'raccontisfida');
@@ -1537,26 +1543,26 @@ function get_change_sfida_review(){
 
         add_post_meta($post->ID, 'caporeparto', $caporep_id);
 
-        _log(print_r($commento_input) . "\n\t" . print_r($_POST['commento_capo_rep']));
         if($commento_input != null && $commento_input != "") {
-            _log("Aggiungo comemnto caporep -" . $commento_input );
+            _log("Aggiungo commento caporep - " . $commento_input );
             add_post_meta($post->ID, 'commento_caporep', date("y-m-d H:m") . " " . $commento_input, false);
-            _log("Aggiungo comemnto caporep -" . $commento_input );
         }
 
         _log("Racconto approvato: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai approvato il racconto! Potrai trovarlo nella pagina <a href=\"" . get_post_type_archive_link('sfida_review'). "\">Racconti sfide</a>", "Approvato!");
-    } elseif (isset($_GET['respingi'])) {
+    } elseif ($verifica == 'Respingi') {
         $squadriglia = get_post_meta($post->ID, 'utente_originale', true);
         $user_sq = get_userdata($squadriglia);
+
         $post->post_author = $squadriglia;
         $post->post_status = 'draft';
+        wp_update_post($post);
+
         wp_mail($user_sq->user_email, "Il racconto della sfida" . $post->post_title . " è da sistemare",
             "Ciao,\nIl tuo caporeparto ha visto il racconto sfida che hai mandato e ha".
             " trovato qualcosa da migliorare. Parla direttamente con lui/lei e modificalo nuovamente.".
             " Puoi tovare il racconto nel menu della bacheca alla voce 'Racconti Sfida.\n\nLo Staff RTD");
         _log("Inviata email per nuovo resoconto alla sq " . $squadriglia . " indirizzo " . $user_sq->user_email);
-        wp_update_post($post);
         _log("Racconto respinto: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
             "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.", "Respinto!");
