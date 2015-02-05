@@ -279,14 +279,15 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida){
 
     $new_post_id = wp_insert_post( $post );  
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
-    add_post_meta($new_post_id, 'is_missione', ($is_sfida && $tiposfida != 'impresa'));
+    $is_missione_string = ( (!$is_sfida) && $tiposfida == 'missione') ? 'true' : 'false';
+    add_post_meta($new_post_id, 'is_missione', $is_missione_string);
     add_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida->ID, $new_post_id);
     add_post_meta($new_post_id, 'utente_originale', $user_id);
 
     $created_post = get_post($new_post_id);
     $created_post->post_name = wp_unique_post_slug($post_slug, $new_post_id, 'draft','sfida_review', 0);
 
-    _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id . ". Creato resoconto " . $new_post_id );
+    _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id .  "(is_missione =" .$is_missione_string .") . Creato resoconto " . $new_post_id );
     return $new_post_id;
 }
 

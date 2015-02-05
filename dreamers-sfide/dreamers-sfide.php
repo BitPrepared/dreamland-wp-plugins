@@ -1459,7 +1459,7 @@ function gestisci_sfida_review( $content ){
             " quegli eg e la vostra verifica su come è andata.</p></div> ";
         $cbrns = " ";
 
-        $commento_obbligatorio = 'true' == get_post_meta($post->ID, 'is_missione', true);
+        $commento_obbligatorio = ('true' == get_post_meta($post->ID, 'is_missione', true));
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
         $cbrns .=  "<form id=\"manda-commento\" action=\"\">";
         $cbrns .= "<div class=\"form-group\"><label for=\"commento_capo_rep\">";
