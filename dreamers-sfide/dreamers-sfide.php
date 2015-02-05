@@ -1487,7 +1487,7 @@ function gestisci_sfida_review( $content ){
         ?>
         <script>
             jQuery(document).ready(function() {
-                jQuery('#manda-commento').action(window.location);
+                jQuery('#manda-commento').attr('action', window.location);
                 jQuery('#approva').on('click', function () {
                     var res = confirm("<?= $testo_conferma_approva ?>");
                     if(! res ) return;
