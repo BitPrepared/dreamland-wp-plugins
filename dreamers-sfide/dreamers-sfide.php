@@ -1469,10 +1469,10 @@ function gestisci_sfida_review( $content ){
 
         $commento_obbligatorio = ('true' == get_post_meta($post->ID, 'is_missione', true));
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
-        $cbrns .=  '<form id="manda-commento" action="' . $myurl . '" method="post">';
+        $cbrns .=  '<form id="manda-commento" action="" method="post">';
         $cbrns .= '<div class="form-group"><label for="commento_capo_rep">';
         $cbrns .= $commento_obbligatorio ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
-        $cbrns .= '</label> <textarea class=\"form-control\" style=\"width:100%\" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
+        $cbrns .= '</label> <textarea class="form-control" style="width:100%" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
         $cbrns .= '<input type="hidden" id="verifica" name="verifica">';
         $cbrns .= "</div>";
         $cbrns .= "</form>";
