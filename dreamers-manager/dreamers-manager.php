@@ -403,6 +403,8 @@ function rtdautorizzaeg_admin_action()
         $message .= "autorizzazione completata.\r\n";
         $message .= 'Accedi al pannello : '. wp_login_url() . " e inizia la sfida.\r\n";
 
+        _log("Autorizzato utente " . $u->ID . " da utente " . get_current_user_id());
+
         if ( !defined('RTD_DEVELOP') || !RTD_DEVELOP ) {
             wp_mail(get_option('admin_email'), 'Utenza '.$u->get('codicecensimento').' attivata', $message);
             wp_mail($u->user_email, 'Return to Dreamland - Autorizzato', $message);
