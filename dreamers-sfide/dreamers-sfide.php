@@ -1362,6 +1362,7 @@ function rs_draft_to_pending( $post ){
         $mail_body_format = "La sq. %s ha completato il racconto della sfida \"%s\" a cui si era iscritta!\n\n".
             "Per vedere e confermare il racconto, accedi con il tuo utente al sito,".
             "vai alla tua bacheca e nel widget delle sfide che segui potrai trovare il racconto.".
+            "Nella pagina del racconto troverai tutte le istruzioni per approvarlo o sistemarlo.\n".
             "Se non ricordi il testo della sfida clicca qui: " . get_permalink($sfida->ID) . " .\n\n".
              "Una volta completato il racconto, la squadriglia non può più modificarlo ".
              "e tu devi approvarlo prima che sia condiviso e visibile (ma solo agli utenti iscritti al sito).\n\n".
