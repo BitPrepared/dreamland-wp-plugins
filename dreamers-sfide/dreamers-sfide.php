@@ -598,7 +598,7 @@ add_action('auto-draft_sfida_review','change_new_sfida_review');
  */
 function racconti_sfide_meta_callback( $post ) {
     wp_nonce_field( basename( __FILE__ ), 'racconti_sfida_nonce' );
-    $racconti_sfide_stored_meta = get_post_meta( $post->ID );
+    $racc_sf_stored_meta = get_post_meta( $post->ID );
 
     $sfida_corrente = get_post_meta($post->ID,'sfida_corrente',true);
 
@@ -628,7 +628,7 @@ function racconti_sfide_meta_callback( $post ) {
         <span class="racconti-sfiderow-title">Visibilita su bacheca e/g</span>
         <div class="racconti-sfiderow-content">
             <label for="meta-visibilita-bacheca">
-                <input type="checkbox" name="meta-visibilita-bacheca" id="meta-visibilita-bacheca" value="yes" <?php if ( isset ( $racconti_sfide_stored_meta['meta-visibilita-bacheca'] ) ) checked( $racconti_sfide_stored_meta['meta-visibilita-bacheca'][0], 'yes' ); ?> />
+                <input type="checkbox" name="meta-visibilita-bacheca" id="meta-visibilita-bacheca" value="yes" <?php if ( isset ( $racc_sf_stored_meta['meta-visibilita-bacheca'] ) ) checked( $racc_sf_stored_meta['meta-visibilita-bacheca'][0], 'yes' ); ?> />
                 Promuovi
             </label>
         </div>
@@ -805,16 +805,16 @@ function manage_gallery_columns($column_name, $id) {
     global $wpdb;
     switch ($column_name) {
         case 'start_time_event':
-            $y = get_post_meta($id,'_start_year',true);
-            $m = get_post_meta($id,'_start_month',true);
-            $d = get_post_meta($id,'_start_day',true);
-            echo $d.'-'.$m.'-'.$y;
+            $year = get_post_meta($id,'_start_year',true);
+            $month = get_post_meta($id,'_start_month',true);
+            $day = get_post_meta($id,'_start_day',true);
+            echo $day.'-'.$month.'-'.$year;
             break;
         case 'end_time_event':
-            $y = get_post_meta($id,'_end_year',true);
-            $m = get_post_meta($id,'_end_month',true);
-            $d = get_post_meta($id,'_end_day',true);
-            echo $d.'-'.$m.'-'.$y;
+            $year = get_post_meta($id,'_end_year',true);
+            $month = get_post_meta($id,'_end_month',true);
+            $day = get_post_meta($id,'_end_day',true);
+            echo $day.'-'.$month.'-'.$year;
             break;
         case 'category_event': 
             $myarray = get_the_terms( $id, 'tipologiesfide' );
@@ -823,7 +823,7 @@ function manage_gallery_columns($column_name, $id) {
             }
             $elenco = '';
             foreach ($myarray as $key => $value) {
-                if ( $myarray[$key]->parent == false ) {
+                if ( $myarray[$key]->parent === false ) {
                     $parent = $myarray[$key]->name;
                 } else {
                     $elenco .= ','.$myarray[$key]->name;
@@ -842,14 +842,7 @@ function manage_gallery_columns($column_name, $id) {
                 echo 'non valida';
             }
             break;
-    // case 'id':
-    //     echo $id;
-    //         break;
-    // case 'images':
-    //     // Get number of images in gallery
-    //     $num_images = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $wpdb->posts WHERE post_parent = {$id};"));
-    //     echo $num_images; 
-    //     break;
+
         case 'regione':
             $r = get_post_meta($id,'_regione',true);
             echo $r;//  get_nome_regione_by_code($r);
@@ -1114,11 +1107,11 @@ function gestisci_sfida_review( $content ){
             " quegli eg e la vostra verifica su come è andata.</p></div> ";
         $cbrns = " ";
 
-        $commento_obbligatorio = ('true' == get_post_meta($post->ID, 'is_missione', true));
+        $comm_needed = ('true' == get_post_meta($post->ID, 'is_missione', true));
         $cbrns .=  "<div style=\"padding:10px;width:600px;\">";
         $cbrns .=  '<form id="manda-commento" action="" method="post">';
         $cbrns .= '<div class="form-group"><label for="commento_capo_rep">';
-        $cbrns .= $commento_obbligatorio ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
+        $cbrns .= $comm_needed ? 'Commento/Relazione: (Necessario)' : 'Commento/Relazione:';
         $cbrns .= '</label> <textarea class="form-control" style="width:100%" name="commento_capo_rep" id="commento_capo_rep"></textarea>';
         $cbrns .= '<input type="hidden" id="verifica" name="verifica">';
         $cbrns .= "</div>";
@@ -1127,8 +1120,8 @@ function gestisci_sfida_review( $content ){
         $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
         $cbrns .= "</div> ";
 
-        $testo_conferma_approva = "Vuoi approvare il resoconto della squadriglia?";
-        $test_conferma_respingi = "Vuoi rimandare il resoconto della squadriglia?".
+        $conferma_approva = "Vuoi approvare il resoconto della squadriglia?";
+        $conferma_respingi = "Vuoi rimandare il resoconto della squadriglia?".
             " Una volta premuto il bottone l'EG potrà modificarlo nuovamente e poi dovrai nuovamente approvarlo.";
 
         ?>
@@ -1136,9 +1129,9 @@ function gestisci_sfida_review( $content ){
             jQuery(document).ready(function() {
                 jQuery('#manda-commento').attr('action', window.location);
                 jQuery('#approva').on('click', function () {
-                    var res = confirm("<?= $testo_conferma_approva ?>");
+                    var res = confirm("<?= $conferma_approva ?>");
                     if(! res ) return;
-                    <?php if($commento_obbligatorio): ?>
+                    <?php if($comm_needed): ?>
                     if(jQuery('#commento_capo_rep').val() == ""){
                         alert("Per le sfide di tipo missione è necessario che tu compili la verfica!");
                         return;
@@ -1148,7 +1141,7 @@ function gestisci_sfida_review( $content ){
                     jQuery('#manda-commento').submit();
                 });
                 jQuery('#respingi').on('click', function () {
-                    var res = confirm("<?= $test_conferma_respingi ?>");
+                    var res = confirm("<?= $conferma_respingi ?>");
                     if(! res ) return;
                     jQuery('#verifica').val('Respingi');
                     jQuery('#manda-commento').submit();

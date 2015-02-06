@@ -5,59 +5,70 @@ define("RACCONTO_SFIDA_META_KEY", "racconto_sfida_");
 abstract class StatusIscrizione {
 
     /* L'utente ha richiesto l'iscrizione */
-    const Richiesta = 'Attiva';
+    const RICHIESTA = 'Attiva';
     
     /* La sfida è stata portata a termine e caricato il resoconto*/
-    const Completata = 'Conclusa';
+    const COMPLETATA = 'Conclusa';
 
     /* La sfida è approvata dal capo reparto */
-    const Approvata = 'Approvata';
+    const APPROVATA = 'Approvata';
 
     /* Disiscrizione da parte dell'utente */
-    const Annullata = 'Annullata';
+    const ANNULLATA = 'Annullata';
 
     /* Sfida conclusa ma non superata */
-    const NonSuperata = 'Non superata';
+    const NON_SUPERATA = 'Non superata';
 
     /* Restitisce la costante a partire da una string 
        Nota: controllare che il risultato non sia null
     */
     function get_value_from_string($s){
         switch ($s) {
-            case 'Attiva': return StatusIscrizione::Richiesta;
-            case 'Conclusa': return StatusIscrizione::Completata;
-            case 'Approvata': return StatusIscrizione::Approvata;
-            case 'Annullata': return StatusIscrizione::Annullata;
-            case 'Non superata' : return StatusIscrizione::NonSuperata;
+            case 'Attiva': return StatusIscrizione::RICHIESTA;
+            case 'Conclusa': return StatusIscrizione::COMPLETATA;
+            case 'Approvata': return StatusIscrizione::APPROVATA;
+            case 'Annullata': return StatusIscrizione::ANNULLATA;
+            case 'Non superata' : return StatusIscrizione::NON_SUPERATA;
             default: return NULL;
         }
     }
 
     function as_array(){
-        return array(Richiesta, Completata, Approvata, Annullata, NonSuperata);
+        return array(RICHIEST, COMPLETATA, APPROVATA, ANNULLATA, NONSUPERATA);
     }
 }
 
+/** Utility. Se l'argomento è un array (non stringa) ritorna il primo elemento.
+ *  Altrimenti ritorna l'argomento stesso.
+ * @param $maybe_arr
+ * @return string
+ */
 function handle_array($maybe_arr){
     return is_array($maybe_arr) && ! is_string($maybe_arr) ? $maybe_arr[0] : $maybe_arr;
 }
 
+/** Controlla se una sfida è attiva o se le iscrizioni
+ *  sono chiuse.
+ *
+ * @param $p Oggetto WP_Post della sfida
+ * @return bool True se la sfida non è scaduta
+ */
 function is_sfida_alive($p){
 
     $all_meta = get_post_meta($p->ID);
     $format = "%s-%s-%s %s:%s";
 
-    $y = handle_array($all_meta['_end_year']);
-    $m = handle_array($all_meta['_end_month']);
-    $d = handle_array($all_meta['_end_day']);
-    $h = handle_array($all_meta['_end_hour']);
+    $year = handle_array($all_meta['_end_year']);
+    $month = handle_array($all_meta['_end_month']);
+    $day = handle_array($all_meta['_end_day']);
+    $hour = handle_array($all_meta['_end_hour']);
     $min = handle_array($all_meta['_end_minute']);
 
-    $time_string = sprintf($format, $y, $m, $d, $h, $min);
+    $time_string = sprintf($format, $year, $month, $day, $hour, $min);
     try {
-        $d = new DateTime($time_string);
+        $scadenza = new DateTime($time_string);
         $now = new DateTime();
-        return ($d > $now);
+        return ($scadenza > $now);
     }
     catch(Exception $e){
         return false;
@@ -65,20 +76,16 @@ function is_sfida_alive($p){
 
 }
 
-function get_limit_sfida($p, $regioni){
+/** Descrive a quali utenti è rivolta la sfida
+ * @param $p WP_Post della sfida
+ * @return string La regione e zona a cui è rivolta oppure 'Tutti' per le sfide nazionali
+ */
+function get_limit_sfida($p){
 
 	$sfida = array();
 
-	$r = get_post_meta($p->ID, '_regione');
-	$z = get_post_meta($p->ID, '_zona');
-
-    if ( empty($r) ) {
-        _log('Problema con la sfida '.$p->ID.' e\' senza campi meta obbligatori ');
-        return array();
-    }
-
-	$sfida['region'] = $r[0];
-	$sfida['zone'] = $z[0];
+	$sfida['region'] = get_post_meta($p->ID, '_regione', true);
+	$sfida['zone'] = get_post_meta($p->ID, '_zona', true);
 
 	if ($sfida['region'] == 'CM_NAZ'){
 		return "Tutti";
@@ -93,10 +100,17 @@ function get_limit_sfida($p, $regioni){
 	return $res;
 }
 
+/** Controlla se un utente può iscriversi ad una certa sfida,
+ *  in particolare se l'utente è loggato, è un utente_eg e fa parte della regione o zona
+ *  a cui la sfida è rivolta. Ritorna true per le sfide nazionali.
+ * @param $p WP_Post della sfida
+ * @param bool $debug Stampa info per il debug
+ * @param null $user_id ID dell'utente
+ * @return bool true se l'utente può iscriversi alla sfida
+ */
 function is_sfida_for_me($p, $debug=false, $user_id = null){
 
 	if(!is_user_logged_in()){
-        _log('utente non autenticato');
 		return false;
 	}
 
@@ -125,8 +139,6 @@ function is_sfida_for_me($p, $debug=false, $user_id = null){
 	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
 	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";
 
-    // _log("<!-- Meta utente regione : " . $user['region'] . ", zona: " . $user['zone'] . " -->");
-
 	$sfida = array();
 
 	$s_r = get_post_meta($p->ID, '_regione');
@@ -134,8 +146,6 @@ function is_sfida_for_me($p, $debug=false, $user_id = null){
 
 	$sfida['region'] = ($s_r) ? reset($s_r) : "Nessuna";
 	$sfida['zone'] = ($s_z) ? reset($s_z) : "Nessuna" ;
-
-    // _log("<!-- Meta post regione : " . $sfida['region'] . ", zona: " . $sfida['zone']. " -->");
 	
 	return $sfida['region'] == "CM_NAZ" || // Se la sfida è nazionale oppure
 			( $sfida['region'] == $user['region'] && // Se la regione è la stessa
@@ -149,7 +159,7 @@ function get_iscrizioni($user_id = NULL){
     } else {
         if(! $user_id instanceof WP_User){
             $aux = get_userdata( $user_id );
-            if($aux == false){
+            if($aux === false){
                 _log("get_iscrizioni: Utente " . $user_id . " non trovato");
                 return array();
             }
@@ -180,7 +190,7 @@ function is_sfida_completed($p){
         return false;
     }
 
-    return get_iscrizione_status($p) === StatusIscrizione::Completata;
+    return get_iscrizione_status($p) === StatusIscrizione::COMPLETATA;
 }
 
 function is_sfida_speciale($p) {
@@ -204,26 +214,25 @@ function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
 
     _log("Iscrizione sfida " . $sfida->ID . " per utente " . $user_id);
     add_user_meta($user_id, '_iscrizioni', $sfida->ID, False);
-    add_user_meta($user_id,'_iscrizione_'.$sfida->ID, StatusIscrizione::Richiesta, True);
+    add_user_meta($user_id,'_iscrizione_'.$sfida->ID, StatusIscrizione::RICHIESTA, True);
 }
 
 
 function rtd_tagify($s){
     
-    $r = strtolower($s);
+    $res = strtolower($s);
 
-    $r = trim($r);
+    $res = trim($res);
 
     // wp sanitize title (used to create slugs). see http://codex.wordpress.org/Function_Reference/sanitize_title
     // Removes special characters and accents
-    $r = sanitize_title($r);
+    $res = sanitize_title($res);
 
     // see http://codex.wordpress.org/Function_Reference/sanitize_title_with_dashes
     // Removes whitespaces and changes to dashes
-    $r = sanitize_title_with_dashes($r);
+    $res = sanitize_title_with_dashes($res);
 
-    _log("Taggified " . $s . " to " . $r );
-    return $r;
+    return $res;
 }
 
 /* 
@@ -235,33 +244,33 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
     if($user_id == NULL){
         $user_id = get_current_user_id();
     }
-    $um = get_user_meta($user_id);
-    $sq = handle_array($um['squadriglia']);
-    $gr = handle_array($um['groupDisplay']);
+    $usm = get_user_meta($user_id);
+    $sqd = handle_array($usm['squadriglia']);
+    $grp = handle_array($usm['groupDisplay']);
 
     if( $superata === 'false'){
-        set_iscrizione_status($sfida, StatusIscrizione::NonSuperata, $user_id);
+        set_iscrizione_status($sfida, StatusIscrizione::NON_SUPERATA, $user_id);
 
         return -1;
     }
 
-    set_iscrizione_status($sfida, StatusIscrizione::Completata, $user_id);
+    set_iscrizione_status($sfida, StatusIscrizione::COMPLETATA, $user_id);
 
     // I tag associati al resoconto
     $post_tags_values = array( 
-        $sq,
-        $gr,
-        handle_array($um['zoneDisplay']),
-        handle_array($um['regionDisplay']),
+        $sqd,
+        $grp,
+        handle_array($usm['zoneDisplay']),
+        handle_array($usm['regionDisplay']),
         $tiposfida
     );
 
     // Normalizzati
     $post_tags = array_map("rtd_tagify", $post_tags_values);
-    $post_slug = "racconto-" . rtd_tagify($sq) . "-" . rtd_tagify($gr) ."-sfida-" . $sfida->post_slug;
+    $post_slug = "racconto-" . rtd_tagify($sqd) . "-" . rtd_tagify($grp) ."-sfida-" . $sfida->post_slug;
     $post = array(
       'post_content'   => "", // The full text of the post.
-      'post_title'     => $sq . " " . $gr . ": " . $sfida->post_title, // The title of your post.
+      'post_title'     => $sqd . " " . $grp . ": " . $sfida->post_title, // The title of your post.
       // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',
       'post_type'      => 'sfida_review',
@@ -274,7 +283,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
       // 'post_password'  => [ <string> ] // Password for post, if any. Default empty string.
       // 'guid'           => // Skip this and let Wordpress handle it, usually.
       // 'post_content_filtered' => // Skip this and let Wordpress handle it, usually.
-      'post_excerpt'   => "La sq" . $sq . "ha completato la sfida \"" . $sfida->post_title . "\". Leggi il loro racconto.",
+      'post_excerpt'   => "La sq" . $sqd . "ha completato la sfida \"" . $sfida->post_title . "\". Leggi il loro racconto.",
       // 'post_date'      => [ Y-m-d H:i:s ], // The time post was made.
       // 'post_date_gmt'  => [ Y-m-d H:i:s ], // The time post was made, in GMT.
       // 'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
@@ -342,11 +351,11 @@ function set_iscrizione_status($p, $s, $user_id = NULL){
 }
 
 function check_validita_sfida($p) {
-    $id = $p;
+    $ids = $p;
     if ( is_object($p) ) {
-        $id = $p->ID;
+        $ids = $p->ID;
     }
-    $validita = get_post_meta($id,'_validita',true);
+    $validita = get_post_meta($ids,'_validita',true);
     $bool = filter_var($validita, FILTER_VALIDATE_BOOLEAN);
     return $bool;
 }
@@ -370,9 +379,16 @@ function get_elenco_categorie_sfida($p) {
     return $res;
 }
 
+/** Trova il post con il racconto della sfida per un utente e una
+ *  sfida. Il valore si trova nelle usermeta dell'utente WP
+ *  con chiave definita come RACCONTO_SFIDA_META_KEY . $sfida_id
+ * @param $user_id ID dell'utente che ha scritto il racconto
+ * @param $sfida_id ID della sfida
+ * @return bool|mixed ID del WP_Post del racconto se il racconto esiste, false altrimenti
+ */
 function get_racconto_sfida($user_id, $sfida_id){
-    $m = get_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida_id, true);
-    if($m != '') return $m;
+    $racconto_id = get_user_meta($user_id, RACCONTO_SFIDA_META_KEY.$sfida_id, true);
+    if($racconto_id != '') return $racconto_id;
     return false;
 }
 
@@ -463,4 +479,45 @@ function get_icons_html($icons){
     }
     return $res;
 
+}
+
+/** Crea l'HTML per una riga di tabella inserendo i valori nell'array
+ * @param $col_array array di valori da inserire nella riga
+ * @return string HTML della riga generato (comprende i tag TR)
+ */
+function html_table_row($col_array){
+    return '<tr><td>' . implode('</td><td>',$col_array) . '</td></tr>';
+
+}
+
+
+function html_table_head($col_array){
+    return "<thead><tr><th>". implode('</th><th>', $col_array) . "</th></tr></thead>";
+}
+
+function html_table_foot($col_array){
+    return "<tfoot><tr><th>". implode('</th><th>', $col_array) . "</th></tr></tfoot>";
+}
+
+function html_data_table($table_id, $headers, $rows_content){
+    $res = '<table id="'. $table_id .'">';
+
+    $res .= html_table_head($headers);
+
+    echo "<tbody>\n";
+    foreach($rows_content as $row){
+        $res .= $row;
+    }
+    echo "</tbody>\n";
+
+    $res .= html_table_foot($headers);
+    $res .= "</table>";
+
+    $res .= '<script type="text/javascript">'.
+        'jQuery(document).ready(function($){'.
+            '$("#'. $table_id .'").DataTable();'.
+        '});'.
+    '</script>';
+
+    return $res;
 }

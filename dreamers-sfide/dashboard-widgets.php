@@ -1,6 +1,11 @@
 <?php
+/** @file dashboard-widgets.php
+ *  Contiene le funzioni per la creazione dei widget
+ *  nella dashboard per la gestione sfide, iscrizioni
+ *  e news.
+ */
 
-/*  WIDGET SFIDE DISPONIBILI   */
+/* **************************************  WIDGET SFIDE DISPONIBILI *********************************************   */
 
 /** Crea il contenuto per un dashboard widget che mostra
  *  le sfide disponibili (ovvero a cui si può iscrivere)
@@ -26,47 +31,27 @@ function sfide_disponibili_dashboard_widget(){
 
     foreach ($posts_array as $k => $p) {
 
-        if(!is_sfida_alive($p)) { continue; }
-        if(!is_sfida_for_me($p)) { continue; }
-        if(is_sfida_subscribed($p)) {continue; }
+        if(!is_sfida_alive($p) || !is_sfida_for_me($p) || is_sfida_subscribed($p)) { continue; }
+
         $icons = get_icons_for_sfida($p);
 
         if ( check_validita_sfida($p) ) {
 
-            $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
-            $sfida_html = $sfida_html . "<td>". get_limit_sfida($p, $regioni) . "</td>\n<td>";
-            foreach ($icons as $icon) {
-                $sfida_html = $sfida_html . '<img alt="'. $icon['caption'] . '" '
-                . 'title="'. $icon['caption'] . '"'
-                .' style="height:25px;margin:5px 5px -5px 5px;" src="'. $icon['src'] . '" \>';
-            }
+            $sfida_html = html_table_row(array(
+               '<a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>",
+                get_limit_sfida($p, $regioni),
+                get_icons_html($icons)
+            ));
 
-            $sfida_html = $sfida_html . "</td>";
             array_push($printout, $sfida_html);
         }
     }
 
     echo "<span style=\"text-align:right;\">Hai ". count($printout) ." sfide disponibili</span><br>";
-    echo "<table id=\"sfide-disponibili\">";
-    echo "<thead><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th></tr><thead>\n";
-    echo "<tbody>\n";
-    foreach ($printout as $key => $value) {
-    echo "<tr>";
-        echo $value;
-        echo "</tr>";
-    }
-    echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th></tr><tfoot>\n";
-    echo "</table>";
-    ?>
 
-    <script type="text/javascript">
-        jQuery(document).ready(function($){
-            $('#sfide-disponibili').DataTable();
-        });
-    </script>
-<?php
+    $colonne = array('Sfida', 'Rivolta a', 'Tipo di sfida');
 
+    echo html_data_table('sfide-disponibili',$colonne,$printout);
 }
 
 function create_sfide_disponibili_widget(){
@@ -78,7 +63,8 @@ function create_sfide_disponibili_widget(){
     $roles = $current_user->roles;
     foreach ($roles as $role) {
         if(in_array($role, $admitted_role)){
-            wp_add_dashboard_widget( 'sfide_disponibili', 'Sfide disponibili', 'sfide_disponibili_dashboard_widget', 'sfide_diponibili_filter' );
+            wp_add_dashboard_widget( 'sfide_disponibili', 'Sfide disponibili',
+                'sfide_disponibili_dashboard_widget', 'sfide_diponibili_filter' );
             return;
         }
     }
@@ -88,7 +74,7 @@ function create_sfide_disponibili_widget(){
 add_action('wp_dashboard_setup', 'create_sfide_disponibili_widget');
 
 
-/* ******************   WIDGET SFIDE DEGLI EG CHE SEGUI *******************  */
+/* **********************************   WIDGET SFIDE DEGLI EG CHE SEGUI ***************************************  */
 
 /** Crea il contenuto per un dashboard widget che mostra le iscrizioni alle sfide
  *  degli utenti eg che "competono" all'utente. In particolare, per un utente IABR
@@ -103,9 +89,13 @@ function sfide_dei_miei_eg_dashboard_widget(){
 
     $roles = $current_user->roles;
 
+    // Ruoli differenti hanno visibilità differenti sulle iscrizioni
+    // e ognuno deve vedere solo le iscrizioni che gli competono
     switch ($roles[0]) {
         case 'iabr':
         case 'referente_regionale':
+            // La meta_key nella tabella user meta che
+            // descrive la regione di appartenenza
             $m_key = USER_META_KEY_REGIONE;
             $msg = "della tua regione";
             break;
@@ -123,11 +113,10 @@ function sfide_dei_miei_eg_dashboard_widget(){
             break;
     }
 
-    if($m_key){
-        $m_value = get_user_meta($current_user->ID, $m_key, 1);
-    } else {
-        $m_value = NULL;
-    }
+    // Trova il valore per la corretta meta_key dopodichè esegue una query
+    // e trova tutti gli utenti eg appartenenti alla regione/zona/gruppo
+
+    $m_value = ($m_key) ? get_user_meta($current_user->ID, $m_key, 1) : null;
 
     if($m_value){
         $user_args = array(
@@ -140,55 +129,64 @@ function sfide_dei_miei_eg_dashboard_widget(){
     }
     $query_users = get_users($user_args);
 
-    $c = 0;
+
+    // Stampa l'HTML per la tabella  delle iscrizioni.
+    // Scarica la lista di tutte le sfide e per ogni utente
+    // nella query controlla se è iscritto e lo stato dell'iscrizione
+    //
+    // Salva le stringhe costruite in un array, in modo da ottenere il conto
+    // totale delle iscrizioni trovate
+
+    $count = 0;
     $printout = array();
     $all_posts = get_posts(array( 'post_type' => 'sfida_event', 'numberposts' => -1, 'posts_per_page' => -1));
 
+    // Per ogni utente si scorrono tutte le sfide e si controlla se è iscritto
     foreach ($query_users as $u) {
+
         $iscrizioni_user = get_iscrizioni($u->ID);
         foreach ($all_posts as $sfida) {
-            if(!is_sfida_subscribed($sfida, $iscrizioni_user)){
-                continue;
-            }
-            $line = "";
-            $line .= "<tr>";
-            $line .= "<td>" . $sfida->post_title . "</td>";
-            $line .= "<td>" . get_limit_sfida($sfida, $regioni) . "</td>";
-            $line .= "<td>" . get_icons_html(get_icons_for_sfida($sfida)) . "</td>";
-            $line .= "<td>" . get_iscrizione_status($sfida, $u->ID) . "</td>";
-            $line .= "<td>" . $u->last_name . "</td>";
-            $line .= "<td>" . $u->first_name . "</td>";
-            $line .= "<td>";
+
+            if(!is_sfida_subscribed($sfida, $iscrizioni_user)){ continue; }
+
             $r_id = get_racconto_sfida($u->ID, $sfida->ID);
             if($r_id){
-                $line .= '<a href="'. get_permalink($r_id) .'">Vedi</a>'; //  <a href="'. get_edit_post_link($r_id).'">Modifica</a>';
+                $html_racconto ='<a href="'. get_permalink($r_id) .'">Vedi</a>';
+                $racconto = get_post($r_id);
+                switch($racconto->post_status){
+                    // Se il post ha stato pending, segnala al camporeparto che il racconto è da approvare
+                    case 'pending': $html_racconto .= ' (Da approvare)'; break;
+                    // Il racconto non è pronto, NON MOSTRARE IL LINK
+                    case 'draft': $html_racconto = "In attesa dell'E/G"; break;
+                    // Il racconto è pubblicato
+                    case 'publish': $html_racconto .= " (Approvato)"; break;
+                }
+
+            } else {
+                $html_racconto = '';
             }
-            $line .= "</td>";
-            $line .= "</tr>";
+
+            $line = html_table_row( array(
+                $sfida->post_title,
+                get_limit_sfida($sfida, $regioni),
+                get_icons_html(get_icons_for_sfida($sfida)),
+                get_iscrizione_status($sfida, $u->ID),
+                $u->last_name,
+                $u->first_name,
+                $html_racconto
+            ));
+
             array_push($printout, $line);
-            $c += 1;
+            $count += 1;
         }
     }
 
-    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sono iscritti gli eg ";
-    echo $msg . "</span><br>";
-    echo "<table id=\"miei-eg-sfide\">";
-    echo "<thead><tr><th>Sfida</th><th>Rivolta a</th>";
-    echo "<th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th><th>Racconto</th></tr><thead>\n";
-    echo "<tbody>\n";
-    foreach ($printout as $key => $value) {
-        echo $value;
-    }
-    echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th><th>Tipo di sfida</th><th>Stato</th><th>Gruppo</th><th>Squadriglia</th><th>Racconto</th></tr><tfoot>\n";
-    echo "</table>";
-    ?>
-    <script type="text/javascript">
-        jQuery(document).ready(function($){
-            $('#miei-eg-sfide').DataTable();
-        });
-    </script>
-<?php
+    $colonne = array('Sfida', 'Rivolta a', 'Tipo di sfida', 'Stato', 'Gruppo', 'Squadriglia', 'Racconto');
+
+    echo '<span style="text-align:right;">Hai '. $count ." sfide a cui sono iscritti gli eg " .$msg. "</span><br>";
+
+    // Genera e stampa l'HTML della tabella ed il Javascript per il plugin jQuery.Datatable
+    echo html_data_table("miei-eg-sfide", $colonne, $printout);
 
 }
 
@@ -202,8 +200,10 @@ function create_sfide_miei_eg_widget(){
 
     foreach ($roles as $r) {
         if(in_array($r, $admitted_roles)){
-            add_meta_box('notizie_capirep_da_dreamland', 'Notizie da Dreamland (Capi)', 'notizie_capirep_dashboard_widget', 'dashboard', 'normal', 'high');
-            add_meta_box('sfide_dei_miei_eg', 'Le sfide degli EG che segui', 'sfide_dei_miei_eg_dashboard_widget', 'dashboard', 'normal', 'high');
+            add_meta_box('notizie_capirep_da_dreamland', 'Notizie da Dreamland (Capi)',
+                'notizie_capirep_dashboard_widget', 'dashboard', 'normal', 'high');
+            add_meta_box('sfide_dei_miei_eg', 'Le sfide degli EG che segui',
+                'sfide_dei_miei_eg_dashboard_widget', 'dashboard', 'normal', 'high');
             return;
         }
     }
@@ -211,7 +211,7 @@ function create_sfide_miei_eg_widget(){
 
 add_action('wp_dashboard_setup', 'create_mie_sfide_widget');
 
-/* ************************** NOTIZIE PER CAPIREPARTO ************************************ */
+/* ****************************************** NOTIZIE PER CAPIREPARTO ********************************************** */
 
 /** Mostra i titoli delle news e delle news riservati
  *   ai capi reparto (categorie news e news-capi)
@@ -233,7 +233,7 @@ function notizie_capirep_dashboard_widget(){
     }
 }
 
-/* ************************** WIDGET DELLE NOTIZIE **************************************** */
+/* *********************************************** WIDGET DELLE NOTIZIE ********************************************* */
 
 /** Mostra i titoli delle news per tutti
  *  (Post con categoria news)
@@ -256,7 +256,7 @@ function notizie_eg_dashboard_widget(){
     }
 }
 
-/* *****************************   WIDGET LE MIE SFIDE     ******************************** */
+/* **************************************   WIDGET LE MIE SFIDE     *********************************************** */
 
 /** Crea il contenuto per un dashboard widget che mostra le sfide a cui si è iscritti. In
  *  particolare:
@@ -275,7 +275,7 @@ function mie_sfide_dashboard_widget(){
 
     $posts_array = get_posts(array('posts_per_page' => -1, 'numberposts' => -1, 'post_type' => 'sfida_event'));
 
-    $c = 0;
+    $count = 0;
     $printout = array();
 
     $iscrizioni = get_iscrizioni();
@@ -284,50 +284,35 @@ function mie_sfide_dashboard_widget(){
 
         $icons = get_icons_for_sfida($p);
 
-        $sfida_html = '<td><a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a></td>\n";
-        $sfida_html .= "<td>". get_limit_sfida($p, $regioni) . "</td>\n";
-        $sfida_html .= "<td>" .  get_icons_html($icons) . "</td>";
-        $sfida_html .= '<td>' . get_iscrizione_status($p) . '</td>';
-        $sfida_html .= '<td>';
         $racc_id = get_racconto_sfida($current_user->ID, $p->ID);
         if($racc_id){
             $racc = get_post($racc_id);
             if($racc->post_status == 'publish'){
-                $sfida_html .= '<a href="' . get_permalink($racc_id). '">Vedi</a>';
+                $racc_html = '<a href="' . get_permalink($racc_id). '">Vedi</a>';
             } elseif($racc->post_status == 'draft'){
-                $sfida_html .= '"<a href="'. get_edit_post_link($racc_id).'">Modifica</a>';
+                $racc_html = '"<a href="'. get_edit_post_link($racc_id).'">Modifica</a>';
             } else {
-                $sfida_html .= "In revisione";
+                $racc_html = "In revisione";
             }
         }
-        $sfida_html .= '</td>';
+
+        $sfida_html = html_table_row(array(
+            '<a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>",
+            get_limit_sfida($p, $regioni),
+            get_icons_html($icons),
+            get_iscrizione_status($p),
+            $racc_html
+        ));
+
         array_push($printout, $sfida_html);
-        $c++;
+        $count++;
     }
 
-    echo "<span style=\"text-align:right;\">Hai ". $c ." sfide a cui sei iscritto</span><br>";
-    echo "<table id=\"le-mie-sfide\">";
-    echo "<thead><tr><th>Sfida</th><th>Rivolta a</th>";
-    echo "<th>Tipo di sfida</th>";
-    echo "<th>Stato</th><th>Racconto</th></tr><thead>\n";
-    echo "<tbody>\n";
-    foreach ($printout as $key => $value) {
-        echo "<tr>";
-        echo $value;
-        echo "</tr>";
-    }
-    echo "</tbody>\n";
-    echo "<tfoot><tr><th>Sfida</th><th>Rivolta a</th>";
-    echo "<th>Tipo di sfida</th>";
-    echo "<th>Stato</th><th>Racconto</th></tr><tfoot>\n";
-    echo "</table>";
-    ?>
-    <script type="text/javascript">
-        jQuery(document).ready(function($){
-            $('#le-mie-sfide').DataTable();
-        });
-    </script>
-<?php
+    $colonne = array('Sfida', 'Rivolta a', 'Tipo di sfida', 'Stato', 'Racconto');
+
+    echo "<span style=\"text-align:right;\">Hai ". $count ." sfide a cui sei iscritto</span><br>";
+
+    echo html_data_table("le-mie-sfide", $colonne, $printout);
 
 }
 
@@ -373,5 +358,4 @@ function add_custom_style(){
     </style>
 <?php
 }
-
-// add_action( 'admin_enqueue_scripts', 'add_custom_style' );
+add_action( 'admin_enqueue_scripts', 'add_custom_style' );
