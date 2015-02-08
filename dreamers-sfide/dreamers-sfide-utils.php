@@ -248,9 +248,8 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
     $sqd = handle_array($usm['squadriglia']);
     $grp = handle_array($usm['groupDisplay']);
 
-    if( $superata === 'false'){
+    if( $superata == 'false'){
         set_iscrizione_status($sfida, StatusIscrizione::NON_SUPERATA, $user_id);
-
         return -1;
     }
 
@@ -268,29 +267,15 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
     // Normalizzati
     $post_tags = array_map("rtd_tagify", $post_tags_values);
     $post_slug = "racconto-" . rtd_tagify($sqd) . "-" . rtd_tagify($grp) ."-sfida-" . $sfida->post_slug;
+
     $post = array(
       'post_content'   => "", // The full text of the post.
       'post_title'     => $sqd . " " . $grp . ": " . $sfida->post_title, // The title of your post.
-      // 'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
       'post_status' => 'draft',
       'post_type'      => 'sfida_review',
       'post_author'    => $user_id, // The user ID number of the author. Default is the current user ID.
-      // 'ping_status'    => [ 'closed' | 'open' ] // Pingbacks or trackbacks allowed. Default is the option 'default_ping_status'.
-      // 'post_parent'    => [ <post ID> ] // Sets the parent of the new post, if any. Default 0.
-      // 'menu_order'     => [ <order> ] // If new post is a page, sets the order in which it should appear in supported menus. Default 0.
-      // 'to_ping'        => // Space or carriage return-separated list of URLs to ping. Default empty string.
-      // 'pinged'         => // Space or carriage return-separated list of URLs that have been pinged. Default empty string.
-      // 'post_password'  => [ <string> ] // Password for post, if any. Default empty string.
-      // 'guid'           => // Skip this and let Wordpress handle it, usually.
-      // 'post_content_filtered' => // Skip this and let Wordpress handle it, usually.
       'post_excerpt'   => "La sq. " . $sqd . " ha completato la sfida \"" . $sfida->post_title . "\". Leggi il loro racconto.",
-      // 'post_date'      => [ Y-m-d H:i:s ], // The time post was made.
-      // 'post_date_gmt'  => [ Y-m-d H:i:s ], // The time post was made, in GMT.
-      // 'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
-      // 'post_category'  => [ array(<category id>, ...) ] // Default empty.
       'tags_input'     => $post_tags
-      // 'tax_input'      => [ array( <taxonomy> => <array | string> ) ] // For custom taxonomies. Default empty.
-      // 'page_template'  => [ <string> ] // Requires name of template file, eg template.php. Default empty.
     );
 
     $new_post_id = wp_insert_post( $post );  
