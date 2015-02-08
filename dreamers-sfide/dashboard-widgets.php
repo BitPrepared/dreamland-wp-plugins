@@ -150,30 +150,28 @@ function sfide_dei_miei_eg_dashboard_widget(){
             if(!is_sfida_subscribed($sfida, $iscrizioni_user)){ continue; }
 
             $r_id = get_racconto_sfida($u->ID, $sfida->ID);
+            $html_racconto = "";
             if($r_id){
                 $html_racconto ='<a href="'. get_permalink($r_id) .'">Vedi</a>';
                 $racconto = get_post($r_id);
                 switch($racconto->post_status){
                     // Se il post ha stato pending, segnala al camporeparto che il racconto è da approvare
-                    case 'pending': $html_racconto .= ' (Da approvare)'; break;
+                    case 'pending': $html_racconto = ' <strong style="color:#FF310F">Da approvare</strong> - ' . $html_racconto; break;
                     // Il racconto non è pronto, NON MOSTRARE IL LINK
-                    case 'draft': $html_racconto = "In attesa dell'E/G"; break;
+                    case 'draft': $html_racconto = '<strong style="color: #334DFF">In attesa dell\'E/G</strong>'; break;
                     // Il racconto è pubblicato
-                    case 'publish': $html_racconto .= " (Approvato)"; break;
+                    case 'publish': $html_racconto = '<strong style="color: #00b700">Approvato</strong> - ' . $html_racconto; break;
                 }
-
-            } else {
-                $html_racconto = '';
             }
 
             $line = html_table_row( array(
                 $sfida->post_title,
+                get_iscrizione_status($sfida, $u->ID),
+                $html_racconto,
                 get_limit_sfida($sfida, $regioni),
                 get_icons_html(get_icons_for_sfida($sfida)),
-                get_iscrizione_status($sfida, $u->ID),
                 $u->last_name,
-                $u->first_name,
-                $html_racconto
+                $u->first_name
             ));
 
             array_push($printout, $line);
@@ -181,7 +179,7 @@ function sfide_dei_miei_eg_dashboard_widget(){
         }
     }
 
-    $colonne = array('Sfida', 'Rivolta a', 'Tipo di sfida', 'Stato', 'Gruppo', 'Squadriglia', 'Racconto');
+    $colonne = array('Sfida', 'Stato', 'Racconto', 'Rivolta a', 'Tipo di sfida', 'Gruppo', 'Squadriglia');
 
     echo '<span style="text-align:right;">Hai '. $count ." sfide a cui sono iscritti gli eg " .$msg. "</span><br>";
 
@@ -285,30 +283,31 @@ function mie_sfide_dashboard_widget(){
         $icons = get_icons_for_sfida($p);
 
         $racc_id = get_racconto_sfida($current_user->ID, $p->ID);
+        $racc_html = "";
         if($racc_id){
             $racc = get_post($racc_id);
             if($racc->post_status == 'publish'){
-                $racc_html = '<a href="' . get_permalink($racc_id). '">Vedi</a>';
+                $racc_html = ' <a href="' . get_permalink($racc_id). '">Vedi</a>';
             } elseif($racc->post_status == 'draft'){
-                $racc_html = '"<a href="'. get_edit_post_link($racc_id).'">Modifica</a>';
+                $racc_html = ' <a href="'. get_edit_post_link($racc_id).'">Modifica</a>';
             } else {
-                $racc_html = "In revisione";
+                $racc_html = " In revisione";
             }
         }
 
         $sfida_html = html_table_row(array(
             '<a style="font-size:14pt;" href="'. get_permalink($p->ID) . '">'. $p->post_title ."</a>",
-            get_limit_sfida($p, $regioni),
-            get_icons_html($icons),
             get_iscrizione_status($p),
-            $racc_html
+            $racc_html,
+            get_limit_sfida($p, $regioni),
+            get_icons_html($icons)
         ));
 
         array_push($printout, $sfida_html);
         $count++;
     }
 
-    $colonne = array('Sfida', 'Rivolta a', 'Tipo di sfida', 'Stato', 'Racconto');
+    $colonne = array('Sfida', 'Stato', 'Racconto', 'Rivolta a', 'Tipo di sfida');
 
     echo "<span style=\"text-align:right;\">Hai ". $count ." sfide a cui sei iscritto</span><br>";
 

@@ -823,7 +823,7 @@ function manage_gallery_columns($column_name, $id) {
             }
             $elenco = '';
             foreach ($myarray as $key => $value) {
-                if ( $myarray[$key]->parent === false ) {
+                if ( $myarray[$key]->parent == false ) {
                     $parent = $myarray[$key]->name;
                 } else {
                     $elenco .= ','.$myarray[$key]->name;
@@ -944,8 +944,8 @@ function sfida_review_admin_css_js() {
                 jQuery("#publish").click(
                     function(e){
                         var event = e || window.event;
-                        var res = confirm("Vuoi pubblicare il racconto?" +
-                        "Dopo averlo pubblicato non sarà più possibile modificarlo!" +
+                        var res = confirm("Vuoi pubblicare il racconto? " +
+                        "Dopo averlo pubblicato non sarà più possibile modificarlo! " +
                         "Il resoconto verrà inviato al tuo caporeparto per essere approvato.");
                         if(!res){
                             event.stopPropagation();
@@ -1133,7 +1133,7 @@ function gestisci_sfida_review( $content ){
                     if(! res ) return;
                     <?php if($comm_needed): ?>
                     if(jQuery('#commento_capo_rep').val() == ""){
-                        alert("Per le sfide di tipo missione è necessario che tu compili la verfica!");
+                        alert("Per le sfide di tipo missione è necessario che tu compili la relazione!");
                         return;
                     }
                     <?php endif; ?>
@@ -1215,7 +1215,7 @@ function get_change_sfida_review(){
         _log("Inviata email per nuovo resoconto alla sq " . $squadriglia . " indirizzo " . $user_sq->user_email);
         _log("Racconto respinto: racconto " . $post->ID . " utente " . $current_user->ID);
         wp_die("Hai respinto il racconto, che è di nuovo modificabile dall'esploratore/guida che lo ha creato.".
-            "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.", "Respinto!");
+            "Assicurati di informarlo sul perchè lo hai respinto e come migliorarlo.<br>\n<a href=\"". admin_url() ."\">Torna alla bacheca</a>.", "Respinto!");
     }
 }
 
@@ -1336,6 +1336,25 @@ function get_iscrizioni_change($user_id) {
 add_action('edit_user_profile_update', 'get_iscrizioni_change');
 
 /* FINE GESTIONE ISCRIZIONI */
+
+/** Rimuove (o sostituisce) i tag <IMG> da una stringa
+ *
+ * @param $str La stringa da cui togliere i tag <IMG>
+ * @param string $replace (Opzionale) testo da sostituire, default ""
+ * @return mixed La stringa da cui sono rimossi i tag <IMG> o sostituiti con $replace
+ */
+ function remove_img_tag($str, $replace = ""){
+     return preg_replace("/<[\\s]*img[^>]+>/i", $replace, $str);
+ }
+
+function no_images_for_review_excerpts( $excerpt ){
+    if(is_post_type_archive( 'sfida_review' )){
+        return remove_img_tag($excerpt);
+    }
+    return $excerpt;
+}
+
+add_filter('get_the_excerpt', "remove_img_tag");
 
 
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
