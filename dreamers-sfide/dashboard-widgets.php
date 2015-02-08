@@ -358,3 +358,47 @@ function add_custom_style(){
 <?php
 }
 add_action( 'admin_enqueue_scripts', 'add_custom_style' );
+
+/* ********************************** HTML GENERATION UTILITIES ************************************************** */
+
+
+/** Crea l'HTML per una riga di tabella inserendo i valori nell'array
+ * @param $col_array array di valori da inserire nella riga
+ * @return string HTML della riga generato (comprende i tag TR)
+ */
+function html_table_row($col_array){
+    return '<tr><td>' . implode('</td><td>',$col_array) . '</td></tr>';
+
+}
+
+
+function html_table_head($col_array){
+    return "<thead><tr><th>". implode('</th><th>', $col_array) . "</th></tr></thead>";
+}
+
+function html_table_foot($col_array){
+    return "<tfoot><tr><th>". implode('</th><th>', $col_array) . "</th></tr></tfoot>";
+}
+
+function html_data_table($table_id, $headers, $rows_content){
+    $res = '<table id="'. $table_id .'">';
+
+    $res .= html_table_head($headers);
+
+    echo "<tbody>\n";
+    foreach($rows_content as $row){
+        $res .= $row;
+    }
+    echo "</tbody>\n";
+
+    $res .= html_table_foot($headers);
+    $res .= "</table>";
+
+    $res .= '<script type="text/javascript">'.
+        'jQuery(document).ready(function($){'.
+        '$("#'. $table_id .'").DataTable();'.
+        '});'.
+        '</script>';
+
+    return $res;
+}

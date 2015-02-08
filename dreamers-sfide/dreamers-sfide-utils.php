@@ -1,42 +1,5 @@
 <?php
 
-define("RACCONTO_SFIDA_META_KEY", "racconto_sfida_");
-
-abstract class StatusIscrizione {
-
-    /* L'utente ha richiesto l'iscrizione */
-    const RICHIESTA = 'Attiva';
-    
-    /* La sfida è stata portata a termine e caricato il resoconto*/
-    const COMPLETATA = 'Conclusa';
-
-    /* La sfida è approvata dal capo reparto */
-    const APPROVATA = 'Approvata';
-
-    /* Disiscrizione da parte dell'utente */
-    const ANNULLATA = 'Annullata';
-
-    /* Sfida conclusa ma non superata */
-    const NON_SUPERATA = 'Non superata';
-
-    /* Restitisce la costante a partire da una string 
-       Nota: controllare che il risultato non sia null
-    */
-    function get_value_from_string($s){
-        switch ($s) {
-            case 'Attiva': return StatusIscrizione::RICHIESTA;
-            case 'Conclusa': return StatusIscrizione::COMPLETATA;
-            case 'Approvata': return StatusIscrizione::APPROVATA;
-            case 'Annullata': return StatusIscrizione::ANNULLATA;
-            case 'Non superata' : return StatusIscrizione::NON_SUPERATA;
-            default: return NULL;
-        }
-    }
-
-    function as_array(){
-        return array(RICHIEST, COMPLETATA, APPROVATA, ANNULLATA, NONSUPERATA);
-    }
-}
 
 /** Utility. Se l'argomento è un array (non stringa) ritorna il primo elemento.
  *  Altrimenti ritorna l'argomento stesso.
@@ -153,37 +116,6 @@ function is_sfida_for_me($p, $debug=false, $user_id = null){
 
 }
 
-function get_iscrizioni($user_id = NULL){
-    if($user_id == NULL){
-        $user_id = get_current_user_id();
-    } else {
-        if(! $user_id instanceof WP_User){
-            $aux = get_userdata( $user_id );
-            if($aux === false){
-                _log("get_iscrizioni: Utente " . $user_id . " non trovato");
-                return array();
-            }
-        }
-    }
-    $res = get_user_meta($user_id, '_iscrizioni', False);
-    return $res;
-}
-
-function is_sfida_subscribed($p, $iscrizioni=False){
-	
-    if(!$p || !isset($p->ID)){
-        return false;
-    }
-
-	if( $iscrizioni === False){
-		$iscrizioni = get_iscrizioni();
-	}
-
-	if ($iscrizioni && in_array($p->ID, $iscrizioni)){
-        return true;
-    }
-}
-
 function is_sfida_completed($p){
 
     if(!$p || !isset($p->ID)){
@@ -205,16 +137,6 @@ function is_sfida_speciale($p) {
     }
 
     return false;
-}
-
-function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
-    if($user_id == NULL){
-        $user_id = get_current_user_id();
-    }
-
-    _log("Iscrizione sfida " . $sfida->ID . " per utente " . $user_id);
-    add_user_meta($user_id, '_iscrizioni', $sfida->ID, False);
-    add_user_meta($user_id,'_iscrizione_'.$sfida->ID, StatusIscrizione::RICHIESTA, True);
 }
 
 
@@ -256,7 +178,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
     set_iscrizione_status($sfida, StatusIscrizione::COMPLETATA, $user_id);
 
     // I tag associati al resoconto
-    $post_tags_values = array( 
+    $post_tags_values = array(
         $sqd,
         $grp,
         handle_array($usm['zoneDisplay']),
@@ -278,61 +200,34 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
       'tags_input'     => $post_tags
     );
 
-    $new_post_id = wp_insert_post( $post );  
+    $new_post_id = wp_insert_post( $post );
+
+    // Salva connessione con la sfida
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
+
+    // Tieni traccia delle missioni
     $is_missione_string = ( (!$is_sfida) && $tiposfida == 'missione') ? 'true' : 'false';
     add_post_meta($new_post_id, 'is_missione', $is_missione_string);
+
+    // Salva relazione tra utente e racconto
     add_user_meta($user_id, RACCONTO_SFIDA_META_KEY . $sfida->ID, $new_post_id);
+
+    // Salva utente originale (perchè il valore author verrà cambiato in seguito)
     add_post_meta($new_post_id, 'utente_originale', $user_id);
 
+    // Crea uno slug per il post
     $created_post = get_post($new_post_id);
     $created_post->post_name = wp_unique_post_slug($post_slug, $new_post_id, 'draft','sfida_review', 0);
+    wp_update_post($created_post);
 
     _log("Completata sfida: " . $sfida->ID . " dall'utente " . $user_id .  "(is_missione =" .$is_missione_string .") . Creato resoconto " . $new_post_id );
     return $new_post_id;
-}
-
-function rtd_disiscrivi_utente_da_sfida($idsfida, $user_id = NULL){
-    if($user_id == NULL){
-        $user_id = get_current_user_id();
-    }
-
-    // Tieni traccia della disiscrizione
-    _log("Sfida annullata, utente: " . $user_id . ", sfida: " . $idsfida);
-    if ( !delete_user_meta($user_id, '_iscrizione_'.$idsfida) ) {
-        _log('meta non cancellato  _iscrizione_'.$idsfida);
-    }
-
-    if ( !delete_user_meta($user_id, '_iscrizioni', $idsfida) ) {
-        _log('meta non cancellato  _iscrizioni : '.$idsfida);
-    }
-
-}
-
-function rdt_get_all_iscrizioni(){
-    global $wpdb;
-    $results = $wpdb->get_results( 'SELECT user_id, meta_value FROM wp_usermeta WHERE meta_key = \'_iscrizioni\'', OBJECT );
-    return $results;
 }
 
 /* Ritorna i post come oggetti WP_Post
 */
 function rdt_get_all_sfide(){
     return get_posts( array('post_type' => 'sfida_event' ));
-}
-
-function get_iscrizione_status($p, $user_id = NULL){
-	
-    if($user_id == NULL){
-        $user_id = get_current_user_id();
-    }
-
-	return get_user_meta( $user_id,'_iscrizione_' . $p->ID, True);
-}
-
-function set_iscrizione_status($p, $s, $user_id = NULL){
-
-	update_user_meta(get_current_user_id(), '_iscrizione_' . $p->ID, $s);
 }
 
 function check_validita_sfida($p) {
@@ -464,45 +359,4 @@ function get_icons_html($icons){
     }
     return $res;
 
-}
-
-/** Crea l'HTML per una riga di tabella inserendo i valori nell'array
- * @param $col_array array di valori da inserire nella riga
- * @return string HTML della riga generato (comprende i tag TR)
- */
-function html_table_row($col_array){
-    return '<tr><td>' . implode('</td><td>',$col_array) . '</td></tr>';
-
-}
-
-
-function html_table_head($col_array){
-    return "<thead><tr><th>". implode('</th><th>', $col_array) . "</th></tr></thead>";
-}
-
-function html_table_foot($col_array){
-    return "<tfoot><tr><th>". implode('</th><th>', $col_array) . "</th></tr></tfoot>";
-}
-
-function html_data_table($table_id, $headers, $rows_content){
-    $res = '<table id="'. $table_id .'">';
-
-    $res .= html_table_head($headers);
-
-    echo "<tbody>\n";
-    foreach($rows_content as $row){
-        $res .= $row;
-    }
-    echo "</tbody>\n";
-
-    $res .= html_table_foot($headers);
-    $res .= "</table>";
-
-    $res .= '<script type="text/javascript">'.
-        'jQuery(document).ready(function($){'.
-            '$("#'. $table_id .'").DataTable();'.
-        '});'.
-    '</script>';
-
-    return $res;
 }

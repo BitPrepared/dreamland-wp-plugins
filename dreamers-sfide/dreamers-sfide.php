@@ -9,6 +9,7 @@
  * License: GPLv3
  */
 
+require_once('iscrizioni-utils.php');
 require_once('dreamers-sfide-utils.php');
 require_once("dreamers-sfide-widget.php");
 require_once('generate-users.php');
@@ -699,28 +700,28 @@ function stida_event_save_meta( $post_id, $post ) {
 
     foreach ($metabox_ids as $key ) {
         
-        $aa = $_POST[$key . '_year'];
-        $mm = $_POST[$key . '_month'];
-        $jj = $_POST[$key . '_day'];
-        $hh = $_POST[$key . '_hour'];
-        $mn = $_POST[$key . '_minute'];
+        $year = $_POST[$key . '_year'];
+        $month = $_POST[$key . '_month'];
+        $day = $_POST[$key . '_day'];
+        $hour = $_POST[$key . '_hour'];
+        $min = $_POST[$key . '_minute'];
         
-        $aa = ($aa <= 0 ) ? date('Y') : $aa;
-        $mm = ($mm <= 0 ) ? date('n') : $mm;
-        $jj = sprintf('%02d',$jj);
-        $jj = ($jj > 31 ) ? 31 : $jj;
-        $jj = ($jj <= 0 ) ? date('j') : $jj;
-        $hh = sprintf('%02d',$hh);
-        $hh = ($hh > 23 ) ? 23 : $hh;
-        $mn = sprintf('%02d',$mn);
-        $mn = ($mn > 59 ) ? 59 : $mn;
+        $year = ($year <= 0 ) ? date('Y') : $year;
+        $month = ($month <= 0 ) ? date('n') : $month;
+        $day = sprintf('%02d',$day);
+        $day = ($day > 31 ) ? 31 : $day;
+        $day = ($day <= 0 ) ? date('j') : $day;
+        $hour = sprintf('%02d',$hour);
+        $hour = ($hour > 23 ) ? 23 : $hour;
+        $min = sprintf('%02d',$min);
+        $min = ($min > 59 ) ? 59 : $min;
         
-        $events_meta[$key . '_year'] = $aa;
-        $events_meta[$key . '_month'] = $mm;
-        $events_meta[$key . '_day'] = $jj;
-        $events_meta[$key . '_hour'] = $hh;
-        $events_meta[$key . '_minute'] = $mn;
-        $events_meta[$key . '_eventtimestamp'] = $aa . $mm . $jj . $hh . $mn;
+        $events_meta[$key . '_year'] = $year;
+        $events_meta[$key . '_month'] = $month;
+        $events_meta[$key . '_day'] = $day;
+        $events_meta[$key . '_hour'] = $hour;
+        $events_meta[$key . '_minute'] = $min;
+        $events_meta[$key . '_eventtimestamp'] = $year . $month . $day . $hour . $min;
         
     }
     
@@ -844,8 +845,8 @@ function manage_gallery_columns($column_name, $id) {
             break;
 
         case 'regione':
-            $r = get_post_meta($id,'_regione',true);
-            echo $r;//  get_nome_regione_by_code($r);
+            $reg = get_post_meta($id,'_regione',true);
+            echo $reg;//  get_nome_regione_by_code($r);
             break;
 
     default:
@@ -1174,9 +1175,9 @@ function get_change_sfida_review(){
     $verifica = filter_input(INPUT_POST, 'verifica', FILTER_SANITIZE_STRING);
 
     if( $verifica == 'Approva' ){
-        $commento_obbligatorio = ( 'true' == get_post_meta($post->ID, 'is_missione', true) ) ;
+        $serve_comm = ( 'true' == get_post_meta($post->ID, 'is_missione', true) ) ;
         $commento_input = filter_input(INPUT_POST, 'commento_capo_rep', FILTER_SANITIZE_STRING);
-        if($commento_obbligatorio && ($commento_input == null || $commento_input == "")){
+        if($serve_comm && ($commento_input == null || $commento_input == "")){
             wp_die("Devi inserire la verifica della staff perchè si tratta di una sfida missione.",
                 "Verifica mancante", array('back_link' => true));
         }
