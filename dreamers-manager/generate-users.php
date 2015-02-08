@@ -30,7 +30,7 @@ function generate_referenti_regionali(){
         array("veneto.rtd@agesci.it", "Z", "VENETO" ,"VEN"),
     );
 
-
+    $res = 0;
     foreach($referenti as $ref){
 
         $regione = strtolower($ref[2]);
@@ -72,18 +72,21 @@ function generate_referenti_regionali(){
             add_user_meta($newid, $meta_key, $meta_value, true);
         }
 
-        if(false) {
+        if(true) {
             $subj = 'Utente ' . $args['user_nicename'] . ' creato';
             $msg = 'Un utente come referente regionale è stato creato per te su ' . get_site_url() . '\n';
             $msg .= 'Potrai seguire nella dashboard le sfide giocate dalle squadriglie della tua regione.\n';
             $msg .= 'Per accedere utilizza\n\tusername: ' . $args['user_login'] . '\n\tpassword: ';
             $msg .= $args['user_pass'] . '\n nella pagina di login che trovi qui ' . wp_login_url();
-            $msg .= '';
+            $msg .= '\nDopo aver effettuato l\'accesso, se vuoi, puoi cambiare la password nella ';
+            $msg .= 'pagin del tuo profilo, che trovi nel menu in alto a destra.\n\nLo Staff di RDT';
 
             wp_mail($ref[0], $subj, $msg);
         }
 
         _log('Creato referente regionale ' . $args['user_nicename'] . ', id: ' . $newid);
+        $res += 1;
     }
+    return $res;
 }
 

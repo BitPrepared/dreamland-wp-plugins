@@ -12,7 +12,6 @@
 require_once('iscrizioni-utils.php');
 require_once('dreamers-sfide-utils.php');
 require_once("dreamers-sfide-widget.php");
-require_once('generate-users.php');
 require_once('dashboard-widgets.php');
 
 define("USER_META_KEY_REGIONE" , 'region');
@@ -113,8 +112,6 @@ function rtd_sfide_install(){
     $role->add_cap('view_other_sfide_review');
     $role->add_cap('conferma_sfide_review');
     $role->add_cap('edit_iscrizioni');
-
-    // generate_referenti_regionali($regioni);
 
 }
 

@@ -9,6 +9,8 @@
  * License: GPLv3
  */
 
+require_once('generate-users.php');
+
 //SETUP
 function rtd_manager_install(){
 
@@ -404,7 +406,26 @@ function gestione_ruoli_menu_page(){
 
     <?php
 
+    if(current_user_can('manage_options')){?>
+        <h4>Genera gli utenti per i referenti</h4>
+        <form method="POST" action="<?php echo admin_url('admin.php') ?>">
+            <input type="hidden" name="action" value="rtdgenerautentireferenti">
+            <input type="submit">Generali tutti!</button>
+            <p>Vedi il file generate-users.php per i dettagli. Verrà chiamata la funzione</p>
+        </form>
+
+
+    <?php}
+
 }
+
+function genera_utenti_regionali_action(){
+    $num = generate_referenti_regionali();
+    wp_die('Creati correttamente ' . $num . ' utenti referenti regionali', 'Successo');
+}
+
+add_action('admin_action_rtdgenerautentireferenti', 'genera_referenti_regionali_action');
+
 
 // @see http://wordpress.stackexchange.com/questions/10500/how-do-i-best-handle-custom-plugin-page-actions
 
