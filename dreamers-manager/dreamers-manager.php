@@ -417,7 +417,7 @@ function gestione_ruoli_menu_page(){
 
 }
 
-function genera_utenti_regionali_action(){
+function genera_referenti_regionali_action(){
     $num = generate_referenti_regionali();
     wp_die('Creati correttamente ' . $num . ' utenti referenti regionali', 'Successo');
 }
