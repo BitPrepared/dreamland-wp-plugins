@@ -406,16 +406,14 @@ function gestione_ruoli_menu_page(){
 
     <?php
 
-    if(current_user_can('manage_options')){?>
+    if(current_user_can('manage_options')){ ?>
         <h4>Genera gli utenti per i referenti</h4>
         <form method="POST" action="<?php echo admin_url('admin.php') ?>">
             <input type="hidden" name="action" value="rtdgenerautentireferenti">
             <input type="submit">Generali tutti!</button>
             <p>Vedi il file generate-users.php per i dettagli. Verrà chiamata la funzione</p>
         </form>
-
-
-    <?php}
+    <?php }
 
 }
 
