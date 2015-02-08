@@ -984,7 +984,7 @@ add_filter( 'the_content', 'tp_stop_guestes' );
 
 function rs_draft_to_pending( $post ){
     global $current_user;
-    if(! $post->post_type == 'sfida_review' ) return;
+    if( $post->post_type != 'sfida_review' ) return;
 
     if(in_array('utente_eg', $current_user->roles)){
         _log("Utente eg " . $current_user->ID ." ha salvato il racconto " . $post->ID);
@@ -1232,11 +1232,13 @@ function mostra_commenti_caporep($content){
 
     $post_id = get_the_ID();
     $post = get_post($post_id);
+    if($post->post_type != "sfida_review") { return $content; };
     if(!is_user_logged_in()) { return; }
 
-    if(! is_single() || ! $post->post_type == "sfida_review" ){
-        return;
+    if(! is_single() || $post->post_type != "sfida_review" ){
+        return $content;
     }
+
     $res = " ";
 
     if(can_see_caporep_comments($post, $current_user)){
@@ -1349,9 +1351,11 @@ add_action('edit_user_profile_update', 'get_iscrizioni_change');
  }
 
 function no_images_for_review_excerpts( $excerpt ){
+
     if(is_post_type_archive( 'sfida_review' )){
         return remove_img_tag($excerpt);
     }
+
     return $excerpt;
 }
 
