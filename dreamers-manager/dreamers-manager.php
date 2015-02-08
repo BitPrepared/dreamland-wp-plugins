@@ -192,14 +192,13 @@ function gestione_ruoli_menu_page(){
         'order'        => 'ASC'
     );
 
+    $myUserId = get_current_user_id();
+    $all_meta_mime = get_user_meta( $myUserId );
+    $myUserInfo = get_userdata($myUserId);
+    $myRoles = $myUserInfo->roles;
+
     $res = get_users( $args ); //WP_User array
     foreach ($res as $rownumber => $user) {
-        
-        if ( $rownumber % 2 == 0 ) {
-            echo '<tr class="alternate">';
-        } else {
-            echo '<tr>';
-        }
 
         $skip = false;
 
@@ -208,18 +207,35 @@ function gestione_ruoli_menu_page(){
         $user_info = get_userdata( $id );
 
         $gruppo = $all_meta_for_user['groupDisplay'][0];
-        if ( !current_user_can('manage_eg') ) {
-            
-            $myUserId = get_current_user_id();
-            $all_meta_mime = get_user_meta( $myUserId );
 
-            if (  strcasecmp($all_meta_mime['group'][0], $all_meta_for_user['group'][0]) != 0 ) {
+        $readonly = false;
+        if ( !current_user_can('manage_eg') ) {
+            switch($myRoles[0]){
+                case 'capo_reparto':
+                    $key = group;
+                    break;
+                case 'referente_regionale':
+                    $key = 'region';
+                    $readonly = true;
+                    break;
+                default:
+                    $key = false;
+                    $readonly = true;
+                    break;
+            }
+
+            if (  strcasecmp($all_meta_mime[$key][0], $all_meta_for_user[$key][0]) != 0 ) {
                 $skip = true;
             }
 
         }
 
         if ( !$skip ) {
+            if ( $rownumber % 2 == 0 ) {
+                echo '<tr class="alternate">';
+            } else {
+                echo '<tr>';
+            }
         
             $ruolocensimento = $all_meta_for_user['ruolocensimento'][0];
 
@@ -232,7 +248,7 @@ function gestione_ruoli_menu_page(){
 
             echo '<td class="column-columnname">';
 
-            if ( current_user_can('abilita_eg') || current_user_can('manage_eg') )
+            if ( ( current_user_can('abilita_eg') || current_user_can('manage_eg') ) && !$readonly)
             {
                 echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
                 echo '<input type="hidden" name="action" value="rtdautorizzaeg" />';
@@ -241,7 +257,7 @@ function gestione_ruoli_menu_page(){
                 echo '</form>';
             }
 
-            if ( current_user_can('delete_users') )
+            if ( current_user_can('delete_users') && !$readonly )
             {
                 echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
                 echo '<input type="hidden" name="action" value="rtddeleteeg" />';
@@ -251,7 +267,7 @@ function gestione_ruoli_menu_page(){
             }
 
             echo '</td>';
-
+            echo '</tr>';
         }
 
     }
@@ -297,29 +313,40 @@ function gestione_ruoli_menu_page(){
 
     $res = get_users( $args ); //WP_User array
     foreach ($res as $rownumber => $user) {
-        
-        if ( $rownumber % 2 == 0 ) {
-            echo '<tr class="alternate">';
-        } else {
-            echo '<tr>';
-        }
 
         $id = $user->ID;
         $all_meta_for_user = get_user_meta( $id );
         $user_info = get_userdata( $id );
 
+        $readonly = false;
         if ( !current_user_can('manage_eg') ) {
-            
-            $myUserId = get_current_user_id();
-            $all_meta_mime = get_user_meta( $myUserId );
+            switch($myRoles[0]){
+                case 'capo_reparto':
+                    $key = group;
+                    break;
+                case 'referente_regionale':
+                    $key = 'region';
+                    $readonly = true;
+                    break;
+                default:
+                    $key = false;
+                    $readonly = true;
+                    break;
+            }
 
-            if (  strcasecmp($all_meta_mime['group'][0], $all_meta_for_user['group'][0]) != 0 ) {
+            if (  strcasecmp($all_meta_mime[$key][0], $all_meta_for_user[$key][0]) != 0 ) {
                 continue;
             }
 
         }
 
-        // todo gestione dell'errore in caso di dati mancanti? 
+        // todo gestione dell'errore in caso di dati mancanti?
+
+        if ( $rownumber % 2 == 0 ) {
+            echo '<tr class="alternate">';
+        } else {
+            echo '<tr>';
+        }
 
         if(isset($all_meta_for_user['ruolocensimento'])){
             $ruolocensimento = $all_meta_for_user['ruolocensimento'];
@@ -339,7 +366,7 @@ function gestione_ruoli_menu_page(){
 
         echo '<td class="column-columnname">';
 
-        if ( current_user_can('abilita_eg') || current_user_can('manage_eg') )
+        if ( ( current_user_can('abilita_eg') || current_user_can('manage_eg') ) && !$readonly)
         {
             echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
             echo '<input type="hidden" name="action" value="rtdcongelaeg" />';
@@ -348,7 +375,7 @@ function gestione_ruoli_menu_page(){
             echo '</form>';
         }
 
-        if ( current_user_can('delete_users') )
+        if ( current_user_can('delete_users') && !$readonly)
         {
             echo '<form method="POST" action="'. admin_url( 'admin.php' ) .'">';
             echo '<input type="hidden" name="action" value="rtddeleteeg" />';
@@ -358,7 +385,7 @@ function gestione_ruoli_menu_page(){
         }
 
         echo '</td>';
-
+        echo '</tr>';
     }
     ?>
 
