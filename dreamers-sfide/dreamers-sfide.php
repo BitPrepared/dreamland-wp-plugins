@@ -1374,11 +1374,13 @@ add_filter('get_the_excerpt', "remove_img_tag");
 
 /* NASCONDI LA PAGINA DI MODIFICA DEI RACCONTI AI CAPOREP */
 function nascondi_modifica_racconti() {
-    $cur = get_current_user();
+    global $current_user;
+    $cur = wp_get_current_user();
     $roles = $cur->roles;
-    if( $roles[0] == 'capo_reparto' ):
+    if( $roles[0] == "capo_reparto" ){
+        remove_menu_page( 'edit.php' );
         remove_menu_page( 'edit.php?post_type=sfida_review' );
-    endif;
+    }
 }
 add_action( 'admin_menu', 'nascondi_modifica_racconti' );
 /* FINE NASCONDI LA PAGINA DI MODIFICA DEI RACCONTI AI CAPOREP */
@@ -1387,18 +1389,19 @@ add_action( 'admin_menu', 'nascondi_modifica_racconti' );
 
 function blocca_modifica_racconti(){
     $current_screen = get_current_screen();
-    $current_user = get_current_screen();
-    $roles = $current_user;
-
+    $cur = wp_get_current_user();
+    $roles = $cur->roles;
     if($roles[0] == 'capo_reparto'){
-        if( $current_screen == 'edit.php') {
+        _log("E' caporep");
+        if( ($current_screen->base == 'edit' || $current_screen->base == 'post') && $current_screen->post_type == 'sfida_review' ) {
+            _log("è la pagina");
             wp_redirect(admin_url());
             exit();
         }
     }
 }
 
-add_action( 'admin_head', 'blocca_modifica_racconti');
+add_action( 'current_screen', 'blocca_modifica_racconti');
 /* BLOCCA PAGINA MODIFICA RACCONTI AI CAPOREP */
 // /**
 //  * Customize Event Query using Post Meta
