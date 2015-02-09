@@ -93,14 +93,15 @@ function is_sfida_for_me($p, $debug=false, $user_id = null){
 	$user = array();
     if($user_id == null){
 	$u_r = get_user_meta($curr_user->ID,'regionShort');
-	$u_z = get_user_meta($curr_user->ID ,'zone');
+	$u_z = get_user_meta($curr_user->ID ,'zoneDisplay');
     } else {
         $u_r = get_user_meta($user_id,'regionShort');
-        $u_z = get_user_meta($user_id ,'zone');
+        $u_z = get_user_meta($user_id ,'zoneDisplay');
     }
 
 	$user['region'] = ($u_r) ? reset($u_r) : "Nessuna";
 	$user['zone'] = ($u_z) ? reset($u_z) : "Nessuna";
+    $user['zone'] = str_replace("C.Z. ", "", $user['zone']);
 
 	$sfida = array();
 
