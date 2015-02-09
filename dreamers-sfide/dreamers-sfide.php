@@ -1135,8 +1135,14 @@ function gestisci_sfida_review( $content ){
                         return;
                     }
                     <?php endif; ?>
-                    jQuery('#verifica').val('Approva');
-                    jQuery('#manda-commento').submit();
+                    jQuery.ajax({
+                        url: '<?php echo get_site_url(); ?>/../portal/api/sfide/conferma/<?php echo $post->ID?>/<?php echo $current_user->get('login_name'); ?>',
+                        type: 'PUT',
+                        success: function(result) {
+                            jQuery('#verifica').val('Approva');
+                            jQuery('#manda-commento').submit();
+                        }
+                    });
                 });
                 jQuery('#respingi').on('click', function () {
                     var res = confirm("<?= $conferma_respingi ?>");
