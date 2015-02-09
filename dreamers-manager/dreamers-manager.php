@@ -214,7 +214,7 @@ function gestione_ruoli_menu_page(){
         if ( !current_user_can('manage_eg') ) {
             switch($myRoles[0]){
                 case 'capo_reparto':
-                    $key = group;
+                    $key = 'group';
                     break;
                 case 'referente_regionale':
                     $key = 'region';
@@ -324,7 +324,7 @@ function gestione_ruoli_menu_page(){
         if ( !current_user_can('manage_eg') ) {
             switch($myRoles[0]){
                 case 'capo_reparto':
-                    $key = group;
+                    $key = 'group';
                     break;
                 case 'referente_regionale':
                     $key = 'region';

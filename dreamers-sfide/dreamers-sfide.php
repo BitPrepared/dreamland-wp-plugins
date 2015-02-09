@@ -90,9 +90,10 @@ function rtd_sfide_install(){
     $role->add_cap('upload_files');
     
     $role = get_role('capo_reparto');
-    // $role->add_cap('view_sfide_review');
+    $role->add_cap('view_sfide_review');
+    $role->add_cap('insert_sfide_review');
     // $role->remove_cap('delete_sfide_review');
-    // $role->add_cap('conferma_sfide_review');
+    $role->add_cap('conferma_sfide_review');
     
     $role = get_role('editor');
     $role->add_cap('insert_sfide');
@@ -136,6 +137,7 @@ function rtd_sfide_uninstall(){
 
     $role = get_role('capo_reparto');
     $role->remove_cap('view_sfide_review');
+    $role->remove_cap('insert_sfide_review');
     $role->remove_cap('conferma_sfide_review');
 
     $role = get_role('editor');
@@ -1014,14 +1016,12 @@ function rs_draft_to_pending( $post ){
              "Lo Staff RTD\n\n";
 
         // $preview_url = http://www.beta.returntodreamland.it/blog/?post_type=sfida_review&p=16&preview=true
-        /*$preview_url = add_query_arg(array(
+        /* $preview_url = add_query_arg(array(
                 'preview' => 'true',
                 'post_type' => 'sfida_review',
                 'p' => $post->ID
-            ),
-            get_site_url());
-        */
-        // La preview è disabilitata perchè non si può controllare se l'utente ha eseguito l'accesso
+            ), get_site_url()); */
+
         // Nel caso in cui l'utente non sia loggato riceve un errore 404
 
         wp_mail($caporep->user_email, 
@@ -1135,8 +1135,13 @@ function gestisci_sfida_review( $content ){
                         return;
                     }
                     <?php endif; ?>
+                    <?php
+                        get_currentuserinfo();
+                        $sfida_id = get_post_meta($post->ID,'sfida',true);
+                        $codicecens = $current_user->user_login;
+                    ?>
                     jQuery.ajax({
-                        url: '<?php echo get_site_url(); ?>/../portal/api/sfide/conferma/<?php echo $post->ID?>/<?php echo $current_user->get('login_name'); ?>',
+                        url: '<?php echo get_site_url(); ?>/../portal/api/sfide/conferma/<?= $sfida_id ?>/<?= $codicecens ?>',
                         type: 'PUT',
                         success: function(result) {
                             jQuery('#verifica').val('Approva');
@@ -1232,12 +1237,13 @@ add_action('wp_head', 'get_change_sfida_review');
 function mostra_commenti_caporep($content){
 
     global $current_user;
-
+    
     $post_id = get_the_ID();
     $post = get_post($post_id);
     if($post->post_type != "sfida_review") { return $content; };
-    if(!is_user_logged_in()) { return; }
 
+    if(! is_user_logged_in() ) { return; }
+    
     if(! is_single() || $post->post_type != "sfida_review" ){
         return $content;
     }
@@ -1364,9 +1370,36 @@ function no_images_for_review_excerpts( $excerpt ){
 
 add_filter('get_the_excerpt', "remove_img_tag");
 
-
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
 
+/* NASCONDI LA PAGINA DI MODIFICA DEI RACCONTI AI CAPOREP */
+function nascondi_modifica_racconti() {
+    $cur = get_current_user();
+    $roles = $cur->roles;
+    if( $roles[0] == 'capo_reparto' ):
+        remove_menu_page( 'edit.php?post_type=sfida_review' );
+    endif;
+}
+add_action( 'admin_menu', 'nascondi_modifica_racconti' );
+/* FINE NASCONDI LA PAGINA DI MODIFICA DEI RACCONTI AI CAPOREP */
+
+/* BLOCCA PAGINA MODIFICA RACCONTI AI CAPOREP */
+
+function blocca_modifica_racconti(){
+    $current_screen = get_current_screen();
+    $current_user = get_current_screen();
+    $roles = $current_user;
+
+    if($roles[0] == 'capo_reparto'){
+        if( $current_screen == 'edit.php') {
+            wp_redirect(admin_url());
+            exit();
+        }
+    }
+}
+
+add_action( 'admin_head', 'blocca_modifica_racconti');
+/* BLOCCA PAGINA MODIFICA RACCONTI AI CAPOREP */
 // /**
 //  * Customize Event Query using Post Meta
 //  * 

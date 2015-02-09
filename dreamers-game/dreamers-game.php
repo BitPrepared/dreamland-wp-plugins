@@ -145,6 +145,10 @@ add_filter( 'hipchat_get_events', function( $events ) {
 //REDIRECT DOPO IL LOGIN
 function send_to_dashboard($user_login, $user){
 
+    if($user_login){
+        wp_redirect($user_login);
+    }
+
     if ( user_can($user,'abilita_eg') ) {
         _log('redirect to admin url '.get_admin_url());
         wp_redirect(get_admin_url().'admin.php?page=dreamers');
