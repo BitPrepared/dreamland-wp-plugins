@@ -77,7 +77,7 @@ function is_sfida_for_me($p, $debug=false, $user_id = null){
 		return false;
 	}
 
-	$curr_user = wp_get_current_user();
+	$curr_user = ($user_id == null) ? wp_get_current_user() : get_user_by('id', $user_id);
 
 	$admitted_roles = array('utente_eg', 'administrator', 'editor');
 
@@ -301,6 +301,27 @@ function can_see_caporep_comments($post, $user){
             return $regione == $caporep_data['region'];
         default: return false;
     }
+}
+
+function can_approve_review($post, $user){
+    if(!isset($user->ID)){
+        $user = get_user_by('id', $user);
+    }
+
+    if($post->post_author == $user->ID){
+        return true;
+    }
+
+    if(user_can($user, 'manage_options')){
+        return true;
+    }
+
+    $user_group = get_user_meta($user->ID, 'group', true);
+    $user_roles = $user->roles;
+    $eg_user = get_post_meta($post->ID, 'utente_originale', true);
+    $eg_user_group = get_user_meta(intval($eg_user), 'group', true);
+
+    return $user_roles[0] == 'capo_reparto' && $user_group == $eg_user_group;
 }
 
 function get_icons_for_sfida($p){

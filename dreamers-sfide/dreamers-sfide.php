@@ -945,6 +945,9 @@ function sfida_review_admin_css_js() {
                     function(e){
                         var event = e || window.event;
                         var res = confirm("Vuoi pubblicare il racconto? " +
+                        "Attenzione : nel resoconto devi vedere le immagini o il video o il " +
+                        "collegamento di quello che devi allegare (se non è così ritorna" +
+                        " nella \"libreria dei media\" e seleziona quello che vuoi allegare).\n" +
                         "Dopo averlo pubblicato non sarà più possibile modificarlo! " +
                         "Il resoconto verrà inviato al tuo caporeparto per essere approvato.");
                         if(!res){
@@ -998,8 +1001,8 @@ function rs_draft_to_pending( $post ){
         );
 
         $query = new WP_User_Query($qargs);
-        $query_caporep = $query->get_results();
-        $caporep = $query_caporep[0];
+        $all_capireparto = $query->get_results();
+        $primo_caporep = $all_capireparto[0];
 
         $sfida_id = get_post_meta($post->ID, 'sfida', true);
         $sfida = get_post($sfida_id); 
@@ -1010,28 +1013,35 @@ function rs_draft_to_pending( $post ){
             "Per vedere e confermare il racconto, accedi con il tuo utente al sito,".
             "vai alla tua bacheca e nel widget delle sfide che segui potrai trovare il racconto.".
             "Nella pagina del racconto troverai tutte le istruzioni per approvarlo o sistemarlo.\n".
+            "Puoi andare direttamente al racconto tramite questo link: %s ." .
             "Se non ricordi il testo della sfida clicca qui: " . get_permalink($sfida->ID) . " .\n\n".
              "Una volta completato il racconto, la squadriglia non può più modificarlo ".
              "e tu devi approvarlo prima che sia condiviso e visibile (ma solo agli utenti iscritti al sito).\n\n".
+            "Attenzione: prima di approvare il recoconto, verifica che gli EG abbiano valorizzato quanto fatto ".
+            "(e che quindi la descrizione non sia troppo corta), e che siano incluse le foto o quello".
+            " che è richiesto agli EG per la sfida (canzone, documento, videoclip, ecc...),".
+            " Non approvarlo e rimanda il raccondo agli EG per sitemarlo".
              "Lo Staff RTD\n\n";
 
         // $preview_url = http://www.beta.returntodreamland.it/blog/?post_type=sfida_review&p=16&preview=true
-        /* $preview_url = add_query_arg(array(
+        $preview_url = add_query_arg(array(
                 'preview' => 'true',
                 'post_type' => 'sfida_review',
                 'p' => $post->ID
-            ), get_site_url()); */
+            ), get_site_url());
 
         // Nel caso in cui l'utente non sia loggato riceve un errore 404
 
-        wp_mail($caporep->user_email, 
-            $post->post_title,
-            sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title));
-        // cambia ownership del post
-        _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
+        foreach($all_capireparto as $caporep) {
+            wp_mail($caporep->user_email,
+                $post->post_title,
+                sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title, wp_login_url($preview_url)));
+            _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
+        }
         
-        wp_update_post(array('ID' => $post->ID, 'post_author' => $caporep->ID));
-        _log("Utente ha completato il racconto " . $post->ID);
+        wp_update_post(array('ID' => $post->ID, 'post_author' => $primo_caporep->ID));
+
+        _log("Utente". $current_user->ID ." ha completato il racconto " . $post->ID);
         wp_redirect( add_query_arg( 'racconto_completato', '1' ,get_admin_url()));
         exit();
 
@@ -1092,8 +1102,9 @@ function gestisci_sfida_review( $content ){
     global $post;
     global $current_user;
 
-    if($post->post_type == 'sfida_review' && $post->post_status == 'pending' &&
-        ($post->post_author == $current_user->ID || current_user_can('manage_options'))){
+    if($post->post_type == 'sfida_review' && $post->post_status == 'pending' && // Se si tratta di un racconto sfida in attesa
+        can_approve_review($post, $current_user) // utente abilitato all'approvazione
+    ){
 
         $scroll_down = "<div class=\"bs-callout bs-callout-primary\"><p>".
             "<h4>Verifica il Racconto</h4>".
@@ -1118,7 +1129,12 @@ function gestisci_sfida_review( $content ){
         $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
         $cbrns .= "</div> ";
 
-        $conferma_approva = "Vuoi approvare il resoconto della squadriglia?";
+        $conferma_approva = "Vuoi approvare il resoconto della squadriglia?\n".
+            "Attenzione: prima di approvare il recoconto, verifica che gli EG abbiano".
+            "valorizzato quanto fatto (e che quindi la descrizione non sia troppo corta),".
+            "e che siano incluse le foto o quello che è richiesto agli EG per la sfida (canzone,".
+            "documento, videoclip, ecc...). Non approvarlo e rimanda il raccondo agli EG per sitemarlo.";
+
         $conferma_respingi = "Vuoi rimandare il resoconto della squadriglia?".
             " Una volta premuto il bottone l'EG potrà modificarlo nuovamente e poi dovrai nuovamente approvarlo.";
 
@@ -1160,6 +1176,7 @@ function gestisci_sfida_review( $content ){
         <?php
         return $scroll_down . $content . $cbrns;
     }
+
     return $content;
 
 }
@@ -1176,7 +1193,7 @@ function get_change_sfida_review(){
     if(!is_user_logged_in()) { return; }
 
     if(! is_single() || ! $post->post_type == "sfida_review" || !$post->post_status == "pending" ||
-        ($post->post_author != $current_user->ID  && ! current_user_can('manage_options')) || !isset($_POST['verifica'])){
+        ! can_approve_review($post, $current_user->ID) || !isset($_POST['verifica'])){
         return;
     }
 
@@ -1275,10 +1292,10 @@ function edit_iscrizioni($user){
 
         $iscrizioni = get_iscrizioni( $user->ID );
 
-        $all_sfide = get_posts( array( 'post_type' => 'sfida_event' ) );
+        $all_sfide = get_posts( array( 'post_type' => 'sfida_event', 'posts_per_page'   => -1, 'numberposts'   => -1 ) );
 
-        echo "<h2>Iscrizioni a sfide</h2><ul>";
-        echo "<h3>Sfide a cui è iscritto</h3>";
+        echo "<h2>Iscrizioni a sfide</h2>";
+        echo "<h3>Sfide a cui è iscritto</h3><ul>";
         foreach ( $all_sfide as $sfida ) {
             if ( is_sfida_subscribed( $sfida, $iscrizioni ) ) {
                 echo "<li>";
@@ -1305,8 +1322,8 @@ function edit_iscrizioni($user){
         echo '<select name="nuova_sfida" id="nuova_sfida"> ';
         echo "<option value=\"\"></option>";
         foreach ( $all_sfide as $sfida ) {
-            if ( is_sfida_alive( $sfida ) && is_sfida_for_me( $sfida ) && ! is_sfida_subscribed( $sfida, $iscrizioni ) ) {
-                echo '<option value="' . $sfida->ID . '">' . $sfida->post_title . '</option>';
+            if ( is_sfida_alive( $sfida ) && is_sfida_for_me( $sfida, false, $user->ID ) && ! is_sfida_subscribed( $sfida, $iscrizioni ) ) {
+                echo '<option value="' . $sfida->ID . '">' . $sfida->post_title . " - " . $sfida->ID. '</option>';
             }
         }
         echo '</select>';

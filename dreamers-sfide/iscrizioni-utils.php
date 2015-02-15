@@ -80,6 +80,8 @@ function is_sfida_subscribed($p, $iscrizioni=False){
     if ($iscrizioni && in_array($p->ID, $iscrizioni)){
         return true;
     }
+
+    return false;
 }
 
 function rdt_iscrivi_utente_a_sfida($sfida, $user_id = NULL){
