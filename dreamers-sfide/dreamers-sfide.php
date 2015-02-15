@@ -1154,7 +1154,11 @@ function gestisci_sfida_review( $content ){
                     <?php
                         get_currentuserinfo();
                         $sfida_id = get_post_meta($post->ID,'sfida',true);
-                        $codicecens = $current_user->user_login;
+
+                        //$codicecens = $current_user->user_login;
+                        $user_orig_id = get_post_meta($post->ID,'utente_originale',true);
+                        $user_orig = get_userdata($user_orig_id);
+                        $codicecens = $user_orig->user_login;
                     ?>
                     jQuery.ajax({
                         url: '<?php echo get_site_url(); ?>/../portal/api/sfide/conferma/<?= $sfida_id ?>/<?= $codicecens ?>',
