@@ -1326,7 +1326,7 @@ function edit_iscrizioni($user){
         echo '<select name="nuova_sfida" id="nuova_sfida"> ';
         echo "<option value=\"\"></option>";
         foreach ( $all_sfide as $sfida ) {
-            if ( is_sfida_alive( $sfida ) && is_sfida_for_me( $sfida, false, $user->ID ) && ! is_sfida_subscribed( $sfida, $iscrizioni ) ) {
+            if ( is_sfida_for_me( $sfida, false, $user->ID ) && ! is_sfida_subscribed( $sfida, $iscrizioni ) ) {
                 echo '<option value="' . $sfida->ID . '">' . $sfida->post_title . " - " . $sfida->ID. '</option>';
             }
         }
