@@ -291,11 +291,13 @@ function can_see_caporep_comments($post, $user){
     $caporep_id = get_post_meta($post->ID, 'caporeparto', true);
     // $caporep = get_user_by('id', $caporep_id);
     $caporep_data = get_user_meta($caporep_id);
+    $eg_id = get_post_meta($post->ID, 'utente_originale', true);
+    $eg_data = get_user_meta(intval($eg_id));
 
     $ruolo = $user->roles[0];
     switch($ruolo){
         case 'editor': return true;
-        case 'capo_reparto' : return ($caporep_id == $user->ID);
+        case 'capo_reparto' : return $caporep_data['group'] == $eg_data['group'];
         case 'referente_regionale':
             $regione = get_user_meta($user->ID, 'region');
             return $regione == $caporep_data['region'];

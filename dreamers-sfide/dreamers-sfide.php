@@ -902,15 +902,15 @@ function istruzioni_racconto_eg_callback(){ ?>
         come è andata, ecc.. (una sorta di breve verifica), oltre a ciò dovete allegare foto, video,
         documenti, ecc... ovvero tutto quello che vi è stato richiesto nella sfida.</p>
 
-    <p>Per caricare i files delle foto,del video ecc...  premete sul bottone <b>Aggiungi Media</b>, attenzione che
+    <p>Per caricare i files delle foto (NE BASTANO 5 O 6), del video ecc...  premete sul bottone <b>Aggiungi Media</b>, attenzione che
         la dimensione dei files che andrete a caricare sul sito è limitata, quindi se i file che avete a disposizione
-         sono troppo grandi dovrete ridurli (immagini e video più piccoli o corti), e anche questo per qualcuno sarà un nuova sfida !
-        Se proprio non riuscite a ridurli, o se la sfida lo richiedesse, potete caricarli su un altra
-        piattforma (ma attenti ai diritti d'autore, al rispetto della privacy ecc..) potete
-        aggiungerli come link, scegliendo tra le opzioni che apparianno premendo il bottone Aggiung Media.</p>
+         sono troppo grandi dovrete ridurli (immagini e video più piccoli o corti), e anche questo per qualcuno sarà un nuova sfida!
+        Se proprio non riuscite a ridurli, o se la sfida lo richiedesse, potete caricarli su un'altra
+        piattaforma (ma attenti ai diritti d'autore, al rispetto della privacy ecc..) potete
+        aggiungerli come link, scegliendo tra le opzioni che appariranno premendo il bottone <b>Aggiungi Media</b>.</p>
 
     <p>Una volta che avrete completato il resoconto premete il bottone <b>Racconto Completato</b> dopo di
-        ché verrà mandta una mail al vostro Capo Reparto per approvarne la condivisione.
+        ché verrà mandata una mail al vostro Capo Reparto per approvarne la condivisione.
         Nota: una volta premuto il bottone non sarete più in grado di modificare il resoconto, potrà farlo il Capo Reparto.</p>
     <?php }
 
@@ -1013,29 +1013,28 @@ function rs_draft_to_pending( $post ){
             "Per vedere e confermare il racconto, accedi con il tuo utente al sito,".
             "vai alla tua bacheca e nel widget delle sfide che segui potrai trovare il racconto.".
             "Nella pagina del racconto troverai tutte le istruzioni per approvarlo o sistemarlo.\n".
-            "Puoi andare direttamente al racconto tramite questo link: %s ." .
             "Se non ricordi il testo della sfida clicca qui: " . get_permalink($sfida->ID) . " .\n\n".
              "Una volta completato il racconto, la squadriglia non può più modificarlo ".
              "e tu devi approvarlo prima che sia condiviso e visibile (ma solo agli utenti iscritti al sito).\n\n".
             "Attenzione: prima di approvare il recoconto, verifica che gli EG abbiano valorizzato quanto fatto ".
             "(e che quindi la descrizione non sia troppo corta), e che siano incluse le foto o quello".
             " che è richiesto agli EG per la sfida (canzone, documento, videoclip, ecc...),".
-            " Non approvarlo e rimanda il raccondo agli EG per sitemarlo".
-             "Lo Staff RTD\n\n";
+            " Non approvarlo e rimanda il raccondo agli EG per sitemarlo\n\n".
+             "Lo Staff RTD\n";
 
         // $preview_url = http://www.beta.returntodreamland.it/blog/?post_type=sfida_review&p=16&preview=true
-        $preview_url = add_query_arg(array(
+        /* $preview_url = add_query_arg(array(
                 'preview' => 'true',
                 'post_type' => 'sfida_review',
                 'p' => $post->ID
-            ), get_site_url());
+            ), get_site_url()); */
 
         // Nel caso in cui l'utente non sia loggato riceve un errore 404
 
         foreach($all_capireparto as $caporep) {
             wp_mail($caporep->user_email,
                 $post->post_title,
-                sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title, wp_login_url($preview_url)));
+                sprintf($mail_body_format, $umeta['squadriglia'][0], $sfida->post_title ));
             _log("Email inviata a " . $caporep->user_email . " racconto " . $post->ID);
         }
         
@@ -1129,7 +1128,7 @@ function gestisci_sfida_review( $content ){
         $cbrns .= "<button style=\"margin:10px\" id=\"respingi\" class=\"btn btn-danger\">Da sistemare</button>";
         $cbrns .= "</div> ";
 
-        $conferma_approva = "Vuoi approvare il resoconto della squadriglia?\n".
+        $conferma_approva = "Vuoi approvare il resoconto della squadriglia?".
             "Attenzione: prima di approvare il recoconto, verifica che gli EG abbiano".
             "valorizzato quanto fatto (e che quindi la descrizione non sia troppo corta),".
             "e che siano incluse le foto o quello che è richiesto agli EG per la sfida (canzone,".
@@ -1424,6 +1423,42 @@ function blocca_modifica_racconti(){
 
 add_action( 'current_screen', 'blocca_modifica_racconti');
 /* BLOCCA PAGINA MODIFICA RACCONTI AI CAPOREP */
+
+/* RICERCHE NEI RACCONTI SFIDA */
+
+function my_places_modify_query( $query ) {
+
+    global $query;
+
+    // TAGS
+    //
+
+
+    if ( is_post_type_archive('sfida_review') ) {
+        $tag = filter_input(INPUT_GET, 'tag', FILTER_SANITIZE_STRING);
+        $category = filter_input(INPUT_GET, 'cat', FILTER_SANITIZE_STRING);
+
+        if($tag != null && $tag !== false){
+            $query->set('tags__in', $tag);
+        }
+
+        if($category != null && $category !== false){
+            // todo: filtra per categoria della sfida!
+            // trova la sfida
+            // trova la sua categoria
+        }
+
+    }
+    return $query;
+}
+
+add_filter( "pre_get_posts", "my_places_modify_query" );
+
+
+/* FINE RICERCHE NEI RACCONTI SFIDA */
+
+
+
 // /**
 //  * Customize Event Query using Post Meta
 //  * 
