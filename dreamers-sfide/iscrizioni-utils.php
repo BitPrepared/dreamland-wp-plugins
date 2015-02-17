@@ -77,7 +77,7 @@ function is_sfida_subscribed($p, $iscrizioni=False){
         $iscrizioni = get_iscrizioni();
     }
 
-    if ($iscrizioni && in_array($p->ID, $iscrizioni)){
+    if (in_array($p->ID, $iscrizioni)){
         return true;
     }
 
