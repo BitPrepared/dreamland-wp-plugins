@@ -968,10 +968,9 @@ add_action('admin_head', 'sfida_review_admin_css_js');
 
 // Impedisce a chi non è loggato di vedere i resoconti sfida
 function tp_stop_guestes( $content ) {
-    global $post;
 
-    if ( $post->post_type == 'sfida_review' ) {
-        if ( !is_user_logged_in() ) {
+    if ( is_single() && get_post_type() == 'sfida_review' ) {
+        if ( ! is_user_logged_in() ) {
             $content = '<a href="'.  wp_login_url( get_permalink() ). '" title="Accedi"><h2>Accedi per poter vedere questo racconto.</h2></a>';
         }
     }
@@ -1381,14 +1380,14 @@ add_action('edit_user_profile_update', 'get_iscrizioni_change');
 
 function no_images_for_review_excerpts( $excerpt ){
 
-    if(is_post_type_archive( 'sfida_review' )){
+    if( is_post_type_archive( 'sfida_review' )){
         return remove_img_tag($excerpt);
     }
 
     return $excerpt;
 }
 
-add_filter('get_the_excerpt', "remove_img_tag");
+add_filter('get_the_excerpt', "no_images_for_review_excerpts");
 
 /* END FORCE DASHBOARD TO BE ONE COLUMN */
 
@@ -1433,7 +1432,6 @@ function my_places_modify_query( $query ) {
     // TAGS
     //
 
-
     if ( is_post_type_archive('sfida_review') ) {
         $tag = filter_input(INPUT_GET, 'tag', FILTER_SANITIZE_STRING);
         $category = filter_input(INPUT_GET, 'cat', FILTER_SANITIZE_STRING);
@@ -1456,7 +1454,6 @@ add_filter( "pre_get_posts", "my_places_modify_query" );
 
 
 /* FINE RICERCHE NEI RACCONTI SFIDA */
-
 
 
 // /**
