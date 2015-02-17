@@ -195,7 +195,7 @@ function register_cpt_sfida_review() {
         'hierarchical' => true,
         'description' => 'Sfide filtrabili per tipologia',
         'supports' => array( 'title', 'editor', 'thumbnail', 'revisions' ),
-        'taxonomies' => array( 'tipologiesfide' ),
+        'taxonomies' => array( 'tipologiesfide', 'post_tag' ),
         'public' => true,
         'show_ui' => true,
         'show_in_menu' => true,
