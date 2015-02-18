@@ -206,6 +206,9 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
     // Salva connessione con la sfida
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
 
+    $cats = wp_get_post_terms($sfida->ID, 'tipologiesifde', array("fields" => "ids"));
+    wp_set_object_terms($new_post_id, $cats, 'tipologiesfide', true);
+
     // Tieni traccia delle missioni
     $is_missione_string = ( (!$is_sfida) && $tiposfida == 'missione') ? 'true' : 'false';
     add_post_meta($new_post_id, 'is_missione', $is_missione_string);
