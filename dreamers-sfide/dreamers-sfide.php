@@ -1128,10 +1128,10 @@ function gestisci_sfida_review( $content ){
         $cbrns .= "</div> ";
 
         $conferma_approva = "Vuoi approvare il resoconto della squadriglia?".
-            "Attenzione: prima di approvare il recoconto, verifica che gli EG abbiano".
-            "valorizzato quanto fatto (e che quindi la descrizione non sia troppo corta),".
+            "Attenzione: prima di approvare il resoconto, verifica che gli EG abbiano".
+            "valorizzato quanto fatto (e che quindi la descrizione non sia troppo corta) ".
             "e che siano incluse le foto o quello che è richiesto agli EG per la sfida (canzone,".
-            "documento, videoclip, ecc...). Non approvarlo e rimanda il raccondo agli EG per sitemarlo.";
+            "documento, videoclip, ecc...). Se non è così, non approvarlo e rimanda il raccondo agli EG per sitemarlo.";
 
         $conferma_respingi = "Vuoi rimandare il resoconto della squadriglia?".
             " Una volta premuto il bottone l'EG potrà modificarlo nuovamente e poi dovrai nuovamente approvarlo.";
@@ -1141,7 +1141,7 @@ function gestisci_sfida_review( $content ){
             jQuery(document).ready(function() {
                 jQuery('#manda-commento').attr('action', window.location);
                 jQuery('#approva').on('click', function () {
-                    var res = confirm("<?= $conferma_approva ?>");
+                    var res = confirm(<?= json_encode($conferma_approva) ?>);
                     if(! res ) return;
                     <?php if($comm_needed): ?>
                     if(jQuery('#commento_capo_rep').val() == ""){
@@ -1164,6 +1164,10 @@ function gestisci_sfida_review( $content ){
                         success: function(result) {
                             jQuery('#verifica').val('Approva');
                             jQuery('#manda-commento').submit();
+                        },
+                        error: function(xhr, status) {
+                            alert("Il sistema ha riscontrato un errore. Per favore contatta lo Staff."+
+                            "Il portale ha risposto: " + status);
                         }
                     });
                 });
