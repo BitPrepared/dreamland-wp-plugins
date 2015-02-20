@@ -1459,6 +1459,19 @@ add_filter( "pre_get_posts", "my_places_modify_query" );
 
 /* FINE RICERCHE NEI RACCONTI SFIDA */
 
+/* SFIDE REVIEW TAG ARCHIVE */
+
+function show_review_tag_page( $query ){
+    if( is_tag() ){
+        $query->set('post_type', 'sfida_review');
+    }
+}
+
+add_action('pre_get_posts', 'show_review_tag_page');
+
+/* END SFIDE REVIEW TAG ARCHIVE */
+
+/* */
 
 // /**
 //  * Customize Event Query using Post Meta
