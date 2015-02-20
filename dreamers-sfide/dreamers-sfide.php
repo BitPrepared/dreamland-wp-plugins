@@ -1427,37 +1427,6 @@ function blocca_modifica_racconti(){
 add_action( 'current_screen', 'blocca_modifica_racconti');
 /* BLOCCA PAGINA MODIFICA RACCONTI AI CAPOREP */
 
-/* RICERCHE NEI RACCONTI SFIDA */
-
-function my_places_modify_query( $query ) {
-
-    global $query;
-
-    // TAGS
-    //
-
-    if ( is_post_type_archive('sfida_review') ) {
-        $tag = filter_input(INPUT_GET, 'tag', FILTER_SANITIZE_STRING);
-        $category = filter_input(INPUT_GET, 'cat', FILTER_SANITIZE_STRING);
-
-        if($tag != null && $tag !== false){
-            $query->set('tags__in', $tag);
-        }
-
-        if($category != null && $category !== false){
-            // todo: filtra per categoria della sfida!
-            // trova la sfida
-            // trova la sua categoria
-        }
-
-    }
-    return $query;
-}
-
-add_filter( "pre_get_posts", "my_places_modify_query" );
-
-
-/* FINE RICERCHE NEI RACCONTI SFIDA */
 
 /* SFIDE REVIEW TAG ARCHIVE */
 
