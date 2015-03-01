@@ -214,7 +214,7 @@ function make_review_tags($review_id = -1, $sfida_id = -1, $utente_eg_id = -1){
     $sqd = handle_array($usm['squadriglia']);
     $grp = handle_array($usm['groupDisplay']);
 
-    $cats = wp_get_object_terms($sfida_id,'tipologiesfide', array('fields'=>'slugs'));
+    $cats = wp_get_object_terms($sfida_id,'tipologiesfide', array('fields'=>'names'));
 
     // I tag associati al resoconto
     $post_tags_values = array(
