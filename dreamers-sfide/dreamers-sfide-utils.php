@@ -158,6 +158,80 @@ function rtd_tagify($s){
     return $res;
 }
 
+/** Ricava la categoria (i terms nella taxonomy tipologiesfide) di una sfida per inserirli in un racconto
+ * @param $review_id ID del racconto sfida; -1 se deve essere creato (nel caso, $sfida_id deve essere un ID valido)
+ * @param int $sfida_id (Opzionale se $review_id == -1 )ID della sfida cui si riferisce il racconto
+ * @return array Da passare a wp_insert_post (chiave 'tax_input') o wp_set_object_terms
+ */
+function make_review_category($review_id, $sfida_id = -1){
+    if($sfida_id == -1){
+        if($review_id == -1){
+            _log("Error: make_review_category chiamato con params " . $review_id . ", " . $sfida_id);
+            return array();
+        }
+        $sfida_id = get_post_meta($review_id, 'sfida', true);
+    }
+
+    $cat_sfida = wp_get_post_terms($sfida_id, 'tipologiesfide');
+
+    return array('tipologiesfide', $cat_sfida);
+}
+
+/** Costruisce un array di tag da assegnare al racconto sfida.
+ *  I tag assegnati sono:
+ *   - Nome squadriglia
+ *   - Nome del gruppo
+ *   - Nome della zona
+ *   - Nome della regione
+ *   - Le categorie della sfida
+ *   - Il nome della sfida
+ *   - L'ID del post della sfida
+ * @param int $review_id ID del racconto sfida per cui costruire i tags (-1 se il post è da creare
+ *  e $sfida_id e $utente_eg devono essere != -1)
+ * @param int $sfida_id (Opzionale) ID della sfida cui il racconto si riferisce
+ * @param int $utente_eg_id (Opzionale) L'ID dell'utente
+ * @return array Un array di tags come stringhe da passare a wp_set_post_tags
+ */
+function make_review_tags($review_id = -1, $sfida_id = -1, $utente_eg_id = -1){
+
+    if($review_id != -1){
+        if($sfida_id == -1){
+            $sfida_id = get_post_meta($review_id, 'sfida', true);
+        }
+
+        if($utente_eg_id == -1){
+            $utente_eg_id = get_post_meta($review_id, 'utente_originale', true);
+        }
+    } else {
+        if($sfida_id == -1 || $utente_eg_id == -1) {
+            _log("Errore: make_review_tags chiamato con params " . $review_id . ", " . $sfida_id . ", " . $utente_eg_id);
+            return array();
+        }
+    }
+
+
+    $sfida = get_post($sfida_id);
+
+    $usm = get_user_meta($utente_eg_id);
+    $sqd = handle_array($usm['squadriglia']);
+    $grp = handle_array($usm['groupDisplay']);
+
+    $categories = wp_get_post_terms($sfida_id, 'tipologiesfide');
+
+    // I tag associati al resoconto
+    $post_tags_values = array(
+        $sqd,
+        $grp,
+        handle_array($usm['zoneDisplay']),
+        handle_array($usm['regionDisplay']),
+        $sfida->post_title,
+        $sfida->ID
+    );
+
+    return array_map("rtd_tagify", array_merge($post_tags_values, $categories));
+
+}
+
 /* 
     Ritorna l'id del resoconto in modo che si possa fare un redirect alla pagina 
     di modifica.
@@ -167,6 +241,7 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
     if($user_id == NULL){
         $user_id = get_current_user_id();
     }
+
     $usm = get_user_meta($user_id);
     $sqd = handle_array($usm['squadriglia']);
     $grp = handle_array($usm['groupDisplay']);
@@ -178,17 +253,8 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
 
     set_iscrizione_status($sfida, StatusIscrizione::COMPLETATA, $user_id);
 
-    // I tag associati al resoconto
-    $post_tags_values = array(
-        $sqd,
-        $grp,
-        handle_array($usm['zoneDisplay']),
-        handle_array($usm['regionDisplay']),
-        $tiposfida
-    );
 
     // Normalizzati
-    $post_tags = array_map("rtd_tagify", $post_tags_values);
     $post_slug = "racconto-" . rtd_tagify($sqd) . "-" . rtd_tagify($grp) ."-sfida-" . $sfida->post_slug;
 
     $post = array(
@@ -198,16 +264,16 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
       'post_type'      => 'sfida_review',
       'post_author'    => $user_id, // The user ID number of the author. Default is the current user ID.
       'post_excerpt'   => "La sq. " . $sqd . " ha completato la sfida \"" . $sfida->post_title . "\". Leggi il loro racconto.",
-      'tags_input'     => $post_tags
+        // I tag associati al racconto
+      'tags_input'     => make_review_tags(-1, $sfida, $user_id),
+        // La categoria del racconto
+        'tax_input'   => make_review_category(-1, $sfida)
     );
 
     $new_post_id = wp_insert_post( $post );
 
     // Salva connessione con la sfida
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
-
-    $cats = wp_get_object_terms($sfida->ID, 'tipologiesfide', array("fields" => "ids"));
-    wp_set_object_terms($new_post_id, $cats, 'tipologiesfide', true);
 
     // Tieni traccia delle missioni
     $is_missione_string = ( (!$is_sfida) && $tiposfida == 'missione') ? 'true' : 'false';
