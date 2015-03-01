@@ -214,8 +214,6 @@ function make_review_tags($review_id = -1, $sfida_id = -1, $utente_eg_id = -1){
     $sqd = handle_array($usm['squadriglia']);
     $grp = handle_array($usm['groupDisplay']);
 
-    $categories = wp_get_post_terms($sfida_id, 'tipologiesfide');
-
     // I tag associati al resoconto
     $post_tags_values = array(
         $sqd,
@@ -226,7 +224,7 @@ function make_review_tags($review_id = -1, $sfida_id = -1, $utente_eg_id = -1){
         $sfida->ID
     );
 
-    return array_map("rtd_tagify", array_merge($post_tags_values, $categories));
+    return array_map("rtd_tagify", $post_tags_values);
 
 }
 
