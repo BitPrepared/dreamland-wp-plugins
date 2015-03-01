@@ -172,9 +172,7 @@ function make_review_category($review_id, $sfida_id = -1){
         $sfida_id = get_post_meta($review_id, 'sfida', true);
     }
 
-    $cat_sfida = wp_get_post_terms($sfida_id, 'tipologiesfide');
-
-    return array('tipologiesfide', $cat_sfida);
+    return wp_get_object_terms($sfida_id, 'tipologiesfide', array('fields' => 'slug'));
 }
 
 /** Costruisce un array di tag da assegnare al racconto sfida.
@@ -265,12 +263,12 @@ function rtd_completa_sfida($sfida, $user_id = NULL, $is_sfida, $tiposfida, $sup
       'post_author'    => $user_id, // The user ID number of the author. Default is the current user ID.
       'post_excerpt'   => "La sq. " . $sqd . " ha completato la sfida \"" . $sfida->post_title . "\". Leggi il loro racconto.",
         // I tag associati al racconto
-      'tags_input'     => make_review_tags(-1, $sfida, $user_id),
-        // La categoria del racconto
-        'tax_input'   => make_review_category(-1, $sfida)
+      'tags_input'     => make_review_tags(-1, $sfida, $user_id)
     );
 
-    $new_post_id = wp_insert_post( $post );
+    $new_post_id = wp_insert_post($post);
+
+    wp_set_object_terms($new_post_id, make_review_category($new_post_id, $sfida->ID), 'tipologiesfide');
 
     // Salva connessione con la sfida
     add_post_meta($new_post_id, 'sfida', $sfida->ID, True);
