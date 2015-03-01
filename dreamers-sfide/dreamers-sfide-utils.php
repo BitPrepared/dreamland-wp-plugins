@@ -214,17 +214,18 @@ function make_review_tags($review_id = -1, $sfida_id = -1, $utente_eg_id = -1){
     $sqd = handle_array($usm['squadriglia']);
     $grp = handle_array($usm['groupDisplay']);
 
+    $cats = wp_get_object_terms($sfida_id,'tipologiesfide', array('fields'=>'slugs'));
+
     // I tag associati al resoconto
     $post_tags_values = array(
         $sqd,
         $grp,
         handle_array($usm['zoneDisplay']),
         handle_array($usm['regionDisplay']),
-        $sfida->post_title,
-        $sfida->ID
+        $sfida->post_title
     );
 
-    return array_map("rtd_tagify", $post_tags_values);
+    return array_map("rtd_tagify", array_merge($post_tags_values,$cats));
 
 }
 
